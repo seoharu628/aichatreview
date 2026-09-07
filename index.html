@@ -502,12 +502,14 @@ $('btn-write').onclick=()=>{
   openSheet('sheet-review');
 };
 function updateWriteButton(){
-  const hasMine = Object.keys(MY.secs||{}).some(id => REVIEWS.some(r => r.id===id));
-  MY.reviewed = hasMine;
-  saveLocal();
   const btn=$('btn-write');
   if(!btn) return;
-  btn.classList.toggle('write-hidden', hasMine);
+  // 플랫폼별로 내 리뷰가 있는 경우에만 작성 버튼을 숨깁니다.
+  const hasMineHere = Object.keys(MY.secs||{}).some(id => {
+    const r=REVIEWS.find(x=>x.id===id);
+    return !!r && r.pid===curPid;
+  });
+  btn.classList.toggle('write-hidden', hasMineHere);
 }
 
 function editMine(id){
@@ -649,6 +651,8 @@ async function adminClear(id){
 }
 
 loadLocal();
+// 이전에 저장된 reviewed 값만으로 버튼을 숨기지 않습니다.
+MY.reviewed=false;
 updateWriteButton();
 
 (async function boot(){
