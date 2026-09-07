@@ -80,7 +80,7 @@
   .rvbody{white-space:pre-wrap;word-break:break-word;font-size:14.5px;line-height:1.8}
   .more{background:none;border:0;padding:8px 0 0;font-size:12.5px;color:var(--teal);text-decoration:underline}
   .rvfoot{display:flex;gap:14px;align-items:center;padding-top:8px}
-  .rvdel,.flag{background:none;border:0;color:var(--muted);font-size:12px;padding:0;text-decoration:underline}
+  .rvdel,.rvedit,.flag{background:none;border:0;color:var(--muted);font-size:12px;padding:0;text-decoration:underline}
   .rsn{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.6}
   .badge{display:inline-block;background:#B4433A;color:#fff;font-size:11px;padding:1px 7px;margin-left:6px}
   .adminact{display:flex;gap:10px;padding-top:10px}
@@ -182,7 +182,7 @@
 
 <div class="sheet" id="sheet-review">
   <div class="sheetbox">
-    <h3>리뷰 쓰기</h3>
+    <h3 id="r-title">리뷰 쓰기</h3>
     <p class="hint" id="r-target"></p>
     <label class="fl">별점</label>
     <div class="starpick" id="r-stars"></div>
@@ -231,14 +231,16 @@ const PLATFORMS=[
   {id:'p-veil',name:'베일'},{id:'p-kkuook',name:'꾸욱'},{id:'p-lape',name:'라페'},
   {id:'p-neona',name:'네오나'},{id:'p-tookit',name:'투킷'},{id:'p-lipin',name:'리핀'},
   {id:'p-ropan',name:'로판'},{id:'p-postype',name:'포스타입'}
-];
+,
+  {id:'bellchat',name:'벨챗',desc:'AI 캐릭터와 대화하는 서비스',cat:'AI 채팅',url:'#',icon:'B'},
+  {id:'crushpop',name:'크러쉬팝',desc:'AI 캐릭터와 대화하는 서비스',cat:'AI 채팅',url:'#',icon:'CP'}];
 const REASONS=['광고·홍보','욕설·비방','허위 내용','개인정보 노출','도배·중복','기타'];
 const API='/api/reviews', LKEY='anonreview-local';
 
 let REVIEWS=[];            // 서버에서 받은 전체 리뷰
 let MY={secs:{},reported:[]};   // 내 삭제 열쇠와 신고 기록 (이 브라우저에만)
 let adminPw=null;
-let curPid=null, sortMode='new', listSort='name', pickRating=0;
+let curPid=null, sortMode='new', listSort='name', pickRating=0, editTarget=null;
 let reportTarget=null, reportReason=null, adminTab='reported';
 const OPEN=new Set();            // 펼쳐 본 긴 리뷰
 const FOLD=700;                  // 이 길이를 넘으면 접어서 보여준다
@@ -355,15 +357,16 @@ function renderDetail(){
     return `<article class="review">
       <div class="rvtop">
         <span class="stars">${stars(r.rating)}</span>
-        <span class="rvwho">${esc(r.tag)} · ${fdate(r.ts)}${long?' · '+r.body.length+'자':''}</span>
+        <span class="rvwho">${esc(r.tag)} · ${fdate(r.ts)}${r.edited?' · 수정됨':''}${long?' · '+r.body.length+'자':''}</span>
       </div>
       <div class="rvbody">${esc(shown)}</div>
       ${long?`<button class="more" data-more="${r.id}">${open?'접기':'더 보기'}</button>`:''}
       <div class="rvfoot">
-        ${mine?`<button class="rvdel" data-del="${r.id}">내 리뷰 삭제</button>`:
+        ${mine?`<button class="rvedit" data-edit="${r.id}">내 리뷰 수정</button><button class="rvdel" data-del="${r.id}">내 리뷰 삭제</button>`:
                `<button class="flag" data-report="${r.id}">${MY.reported.includes(r.id)?'신고함':'신고'}</button>`}
       </div>
     </article>`;}).join(''):'<div class="empty">아직 리뷰가 없어요. 먼저 남겨보세요.</div>';
+  $('d-reviews').querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>editMine(b.dataset.edit));
   $('d-reviews').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>delMine(b.dataset.del));
   $('d-reviews').querySelectorAll('[data-report]').forEach(b=>b.onclick=()=>openReport(b.dataset.report));
   $('d-reviews').querySelectorAll('[data-more]').forEach(b=>b.onclick=()=>{
@@ -447,24 +450,47 @@ sp.querySelectorAll('button').forEach(b=>b.onclick=()=>{
 });
 $('r-body').addEventListener('input',e=>$('r-count').textContent=e.target.value.length);
 $('btn-write').onclick=()=>{
+  editTarget=null;
   pickRating=0; sp.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
   $('r-body').value=''; $('r-count').textContent='0';
+  $('r-title').textContent='리뷰 쓰기';
+  $('r-save').textContent='등록하기';
   const p=PLATFORMS.find(x=>x.id===curPid);
   $('r-target').textContent=p?`${p.name}에 대한 후기입니다.`:'';
   openSheet('sheet-review');
 };
+function editMine(id){
+  const r=REVIEWS.find(x=>x.id===id);
+  if(!r || !MY.secs[id]){toast('수정할 권한이 없어요');return;}
+  editTarget=id;
+  pickRating=r.rating;
+  sp.querySelectorAll('button').forEach(x=>x.classList.toggle('on',+x.dataset.v<=pickRating));
+  $('r-body').value=r.body;
+  $('r-count').textContent=r.body.length;
+  $('r-title').textContent='리뷰 수정';
+  $('r-save').textContent='수정하기';
+  const p=PLATFORMS.find(x=>x.id===r.pid);
+  $('r-target').textContent=p?`${p.name}에 대한 리뷰를 수정하고 있어요.`:'';
+  openSheet('sheet-review');
+}
 $('r-save').onclick=async()=>{
   const body=$('r-body').value.trim();
   if(!pickRating){toast('별점을 선택해 주세요');return;}
   if(body.length<5){toast('후기를 5자 이상 적어주세요');return;}
-  const btn=$('r-save'); btn.disabled=true; btn.textContent='등록 중…';
+  const btn=$('r-save'); btn.disabled=true; btn.textContent=editTarget?'수정 중…':'등록 중…';
   try{
-    const d=await api({action:'add',pid:curPid,rating:pickRating,body});
-    MY.secs[d.review.id]=d.sec; saveLocal();
-    closeSheet('sheet-review');
-    await fetchReviews(); renderDetail(); toast('등록했어요');
-  }catch(e){toast('등록 실패: '+((e&&e.message)||e));}
-  btn.disabled=false; btn.textContent='등록하기';
+    if(editTarget){
+      await api({action:'edit',id:editTarget,sec:MY.secs[editTarget],rating:pickRating,body});
+      closeSheet('sheet-review');
+      await fetchReviews(); renderDetail(); toast('수정했어요');
+    }else{
+      const d=await api({action:'add',pid:curPid,rating:pickRating,body});
+      MY.secs[d.review.id]=d.sec; saveLocal();
+      closeSheet('sheet-review');
+      await fetchReviews(); renderDetail(); toast('등록했어요');
+    }
+  }catch(e){toast((editTarget?'수정':'등록')+' 실패: '+((e&&e.message)||e));}
+  btn.disabled=false; btn.textContent=editTarget?'수정하기':'등록하기';
 };
 async function delMine(id){
   if(!confirm('이 리뷰를 지울까요?')) return;
