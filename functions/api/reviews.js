@@ -4,14 +4,6 @@
 
 const KEY = 'reviews';
 
-function clientIp(request) {
-  // Cloudflare Pages/Workers supplies the connecting client IP here.
-  // Fall back to X-Forwarded-For for non-Cloudflare/local testing.
-  return request.headers.get('CF-Connecting-IP')
-    || (request.headers.get('X-Forwarded-For') || '').split(',')[0].trim()
-    || 'unknown';
-}
-
 async function load(env) {
   const raw = await env.REVIEWS.get(KEY);
   return raw ? JSON.parse(raw) : [];
@@ -25,7 +17,7 @@ function json(data, status = 200) {
     headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }
   });
 }
-const strip = r => { const { sec, ip, ...pub } = r; return pub; };
+const strip = r => { const { sec, ...pub } = r; return pub; };
 
 export async function onRequestGet({ env }) {
   try {
@@ -70,7 +62,6 @@ export async function onRequestPost({ request, env }) {
       tag: '익명 ' + Math.floor(1000 + Math.random() * 9000),
       ts: Date.now(),
       rp: [],
-      ip,
       sec: crypto.randomUUID()      // 작성자만 아는 삭제용 열쇠
     };
     list.push(rev);
