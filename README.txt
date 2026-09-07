@@ -18,3 +18,5 @@ GitHub에 이 폴더 구조 그대로 올린 뒤 Cloudflare Pages에 Git 저장�
 
 API 주소는 코드에서 `/api/reviews`로 사용하며,
 `functions/api/reviews.js`가 해당 경로를 처리합니다.
+
+Cloudflare Pages deployment
