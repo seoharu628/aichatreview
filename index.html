@@ -356,7 +356,12 @@ async function openDetail(pid){
   $('view-list').hidden=true; $('view-detail').hidden=false;
   window.scrollTo(0,0);
   renderDetail();
-  try{await fetchReviews();renderDetail();}catch(e){}
+  try{
+    await fetchReviews();
+  }catch(e){
+    // 리뷰 조회가 실패해도 작성 UI 자체는 막지 않습니다.
+  }
+  renderDetail();
 }
 function renderDetail(){
   const p=PLATFORMS.find(x=>x.id===curPid);
@@ -490,7 +495,15 @@ $('btn-write').onclick=()=>{
   openSheet('sheet-review');
 };
 function updateWriteButton(){
-  $('btn-write').style.display=MY.reviewed?'none':'block';
+  const hasMine = Object.keys(MY.secs||{}).some(id => REVIEWS.some(r => r.id===id));
+  // 서버에 실제 내 리뷰가 있을 때만 작성 버튼을 숨깁니다.
+  // 예전에 저장된 localStorage의 reviewed=true 때문에 버튼이
+  // 영원히 사라지는 문제를 방지합니다.
+  if(MY.reviewed !== hasMine){
+    MY.reviewed = hasMine;
+    saveLocal();
+  }
+  $('btn-write').style.display = hasMine ? 'none' : 'block';
 }
 
 function editMine(id){
