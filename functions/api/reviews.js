@@ -40,14 +40,6 @@ export async function onRequestPost({ request, env }) {
   catch { return json({ error: 'KV를 읽지 못했어요' }, 500); }
 
   if (b.action === 'add') {
-    const ip = clientIp(request);
-
-    // IP 하나당 동시에 존재할 수 있는 리뷰는 1개.
-    // 리뷰를 삭제하면 이 조건에서 제외되어 다시 작성할 수 있습니다.
-    if (ip !== 'unknown' && list.some(r => r.ip === ip)) {
-      return json({ error: '이 IP에서는 이미 리뷰를 작성했어요. 기존 리뷰를 삭제하면 다시 작성할 수 있어요.' }, 409);
-    }
-
     const body = String(b.body || '').trim();
     const rating = Math.round(Number(b.rating));
     const pid = String(b.pid || '');
