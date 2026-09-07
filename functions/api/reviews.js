@@ -40,6 +40,7 @@ export async function onRequestPost({ request, env }) {
   catch { return json({ error: 'KV를 읽지 못했어요' }, 500); }
 
   if (b.action === 'add') {
+
     const body = String(b.body || '').trim();
     const rating = Math.round(Number(b.rating));
     const pid = String(b.pid || '');
