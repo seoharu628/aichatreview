@@ -372,6 +372,7 @@ function renderDetail(){
     renderDetail();
   });
 }
+$('btn-back').onclick=()=>backToList();
 function backToList(){$('view-detail').hidden=true;$('view-admin').hidden=true;$('view-list').hidden=false;renderList();doSearch();refresh();}
 
 /* ===== 검색 ===== */
