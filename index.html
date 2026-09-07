@@ -55,6 +55,8 @@
   .btn.solid:disabled{opacity:.45;cursor:default}
   .btn.ghost{border-color:var(--line);color:var(--muted)}
   .addbar{margin-top:20px}
+  #btn-write{display:block !important}
+  #btn-write.write-hidden{display:none !important}
 
   .back{background:none;border:0;padding:8px 0;color:var(--muted);font-size:13.5px}
   .detailhead{border-bottom:1.5px solid var(--ink);padding-bottom:18px}
@@ -352,6 +354,7 @@ function renderList(){
 /* ===== 상세 ===== */
 async function openDetail(pid){
   curPid=pid; sortMode='new';
+  try{localStorage.setItem('anonreview-current-platform',pid);}catch(e){}
   document.querySelectorAll('#detail-sorts button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.sort==='new'));
   $('view-list').hidden=true; $('view-detail').hidden=false;
   window.scrollTo(0,0);
@@ -407,7 +410,11 @@ function renderDetail(){
   updateWriteButton();
 }
 $('btn-back').onclick=()=>backToList();
-function backToList(){$('view-detail').hidden=true;$('view-admin').hidden=true;$('view-list').hidden=false;renderList();doSearch();refresh();}
+function backToList(){
+  try{localStorage.removeItem('anonreview-current-platform');}catch(e){}
+  $('view-detail').hidden=true;$('view-admin').hidden=true;$('view-list').hidden=false;
+  renderList();doSearch();refresh();
+}
 
 /* ===== 검색 ===== */
 function hl(text,q){
@@ -496,14 +503,11 @@ $('btn-write').onclick=()=>{
 };
 function updateWriteButton(){
   const hasMine = Object.keys(MY.secs||{}).some(id => REVIEWS.some(r => r.id===id));
-  // 서버에 실제 내 리뷰가 있을 때만 작성 버튼을 숨깁니다.
-  // 예전에 저장된 localStorage의 reviewed=true 때문에 버튼이
-  // 영원히 사라지는 문제를 방지합니다.
-  if(MY.reviewed !== hasMine){
-    MY.reviewed = hasMine;
-    saveLocal();
-  }
-  $('btn-write').style.display = hasMine ? 'none' : 'block';
+  MY.reviewed = hasMine;
+  saveLocal();
+  const btn=$('btn-write');
+  if(!btn) return;
+  btn.classList.toggle('write-hidden', hasMine);
 }
 
 function editMine(id){
@@ -646,7 +650,15 @@ async function adminClear(id){
 
 loadLocal();
 updateWriteButton();
-refresh();
+
+(async function boot(){
+  await refresh();
+  let savedPid=null;
+  try{savedPid=localStorage.getItem('anonreview-current-platform');}catch(e){}
+  if(savedPid && PLATFORMS.some(p=>p.id===savedPid)){
+    await openDetail(savedPid);
+  }
+})();
 </script>
 </body>
 </html>
