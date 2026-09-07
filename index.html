@@ -230,15 +230,16 @@ const PLATFORMS=[
   {id:'p-umai',name:'우마이'},{id:'p-doomchit',name:'둠칫'},{id:'p-crack',name:'크랙'},
   {id:'p-veil',name:'베일'},{id:'p-kkuook',name:'꾸욱'},{id:'p-lape',name:'라페'},
   {id:'p-neona',name:'네오나'},{id:'p-tookit',name:'투킷'},{id:'p-lipin',name:'리핀'},
-  {id:'p-ropan',name:'로판'},{id:'p-postype',name:'포스타입'}
-,
+  {id:'p-ropan',name:'로판'},{id:'p-postype',name:'포스타입'},
+  {id:'tikitaka',name:'티키타'},
+  {id:'moari',name:'모아리'},
   {id:'bellchat',name:'벨챗',desc:'AI 캐릭터와 대화하는 서비스',cat:'AI 채팅',url:'#',icon:'B'},
   {id:'crushpop',name:'크러쉬팝',desc:'AI 캐릭터와 대화하는 서비스',cat:'AI 채팅',url:'#',icon:'CP'}];
 const REASONS=['광고·홍보','욕설·비방','허위 내용','개인정보 노출','도배·중복','기타'];
 const API='/api/reviews', LKEY='anonreview-local';
 
 let REVIEWS=[];            // 서버에서 받은 전체 리뷰
-let MY={secs:{},reported:[]};   // 내 삭제 열쇠와 신고 기록 (이 브라우저에만)
+let MY={secs:{},reported:[],reviewed:false};   // 내 리뷰/신고 기록 (이 브라우저에만)
 let adminPw=null;
 let curPid=null, sortMode='new', listSort='name', pickRating=0, editTarget=null;
 let reportTarget=null, reportReason=null, adminTab='reported';
@@ -253,7 +254,14 @@ function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clear
 
 /* ===== 로컬 기록 (내 리뷰 열쇠 · 신고 여부) ===== */
 function loadLocal(){
-  try{const v=localStorage.getItem(LKEY); if(v){const d=JSON.parse(v); MY={secs:d.secs||{},reported:d.reported||[]};}}catch(e){}
+  try{
+    const v=localStorage.getItem(LKEY);
+    if(v){
+      const d=JSON.parse(v);
+      MY={secs:d.secs||{},reported:d.reported||[],reviewed:!!d.reviewed};
+      if(!MY.reviewed && Object.keys(MY.secs).length) MY.reviewed=true;
+    }
+  }catch(e){}
 }
 function saveLocal(){
   try{localStorage.setItem(LKEY,JSON.stringify(MY));}catch(e){}
@@ -374,6 +382,7 @@ function renderDetail(){
     OPEN.has(id)?OPEN.delete(id):OPEN.add(id);
     renderDetail();
   });
+  updateWriteButton();
 }
 $('btn-back').onclick=()=>backToList();
 function backToList(){$('view-detail').hidden=true;$('view-admin').hidden=true;$('view-list').hidden=false;renderList();doSearch();refresh();}
@@ -450,6 +459,10 @@ sp.querySelectorAll('button').forEach(b=>b.onclick=()=>{
 });
 $('r-body').addEventListener('input',e=>$('r-count').textContent=e.target.value.length);
 $('btn-write').onclick=()=>{
+  if(MY.reviewed){
+    toast('이 브라우저에서는 이미 리뷰를 작성했어요');
+    return;
+  }
   editTarget=null;
   pickRating=0; sp.querySelectorAll('button').forEach(x=>x.classList.remove('on'));
   $('r-body').value=''; $('r-count').textContent='0';
@@ -459,6 +472,10 @@ $('btn-write').onclick=()=>{
   $('r-target').textContent=p?`${p.name}에 대한 후기입니다.`:'';
   openSheet('sheet-review');
 };
+function updateWriteButton(){
+  $('btn-write').style.display=MY.reviewed?'none':'block';
+}
+
 function editMine(id){
   const r=REVIEWS.find(x=>x.id===id);
   if(!r || !MY.secs[id]){toast('수정할 권한이 없어요');return;}
@@ -485,9 +502,14 @@ $('r-save').onclick=async()=>{
       await fetchReviews(); renderDetail(); toast('수정했어요');
     }else{
       const d=await api({action:'add',pid:curPid,rating:pickRating,body});
-      MY.secs[d.review.id]=d.sec; saveLocal();
+      MY.secs[d.review.id]=d.sec;
+      MY.reviewed=true;
+      saveLocal();
       closeSheet('sheet-review');
-      await fetchReviews(); renderDetail(); toast('등록했어요');
+      await fetchReviews();
+      renderDetail();
+      updateWriteButton();
+      toast('등록했어요');
     }
   }catch(e){toast((editTarget?'수정':'등록')+' 실패: '+((e&&e.message)||e));}
   btn.disabled=false; btn.textContent=editTarget?'수정하기':'등록하기';
@@ -496,8 +518,13 @@ async function delMine(id){
   if(!confirm('이 리뷰를 지울까요?')) return;
   try{
     await api({action:'delete',id,sec:MY.secs[id]});
-    delete MY.secs[id]; saveLocal();
-    await fetchReviews(); renderDetail(); toast('삭제했어요');
+    delete MY.secs[id];
+    MY.reviewed=false;
+    saveLocal();
+    await fetchReviews();
+    renderDetail();
+    updateWriteButton();
+    toast('삭제했어요');
   }catch(e){toast('삭제 실패: '+((e&&e.message)||e));}
 }
 
@@ -588,6 +615,7 @@ async function adminClear(id){
 }
 
 loadLocal();
+updateWriteButton();
 refresh();
 </script>
 </body>
