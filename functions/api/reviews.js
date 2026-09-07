@@ -61,6 +61,25 @@ export async function onRequestPost({ request, env }) {
     return json({ review: strip(rev), sec: rev.sec });
   }
 
+  if (b.action === 'edit') {
+    const t = list.find(r => r.id === b.id);
+    if (!t) return json({ error: '이미 삭제된 리뷰예요' }, 404);
+    if (t.sec !== b.sec) return json({ error: '수정할 권한이 없어요' }, 403);
+
+    const body = String(b.body || '').trim();
+    const rating = Math.round(Number(b.rating));
+    if (body.length < 5) return json({ error: '후기를 5자 이상 적어주세요' }, 400);
+    if (body.length > 10000) return json({ error: '후기는 1만 자까지 쓸 수 있어요' }, 400);
+    if (!(rating >= 1 && rating <= 5)) return json({ error: '별점을 확인해 주세요' }, 400);
+
+    t.rating = rating;
+    t.body = body;
+    t.edited = true;
+    t.updatedTs = Date.now();
+    await save(env, list);
+    return json({ review: strip(t) });
+  }
+
   if (b.action === 'report') {
     const t = list.find(r => r.id === b.id);
     if (!t) return json({ error: '이미 삭제된 리뷰예요' }, 404);
