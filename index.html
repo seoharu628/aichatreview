@@ -161,13 +161,14 @@
       </div>
       <div class="dist" id="d-dist"></div>
     </div>
+    <div class="addbar"><button class="btn solid" id="btn-write" style="width:100%;padding:13px">리뷰 쓰기</button></div>
     <div class="sorts" id="detail-sorts">
       <button data-sort="new" aria-pressed="true">최신순</button>
       <button data-sort="high" aria-pressed="false">별점 높은순</button>
       <button data-sort="low" aria-pressed="false">별점 낮은순</button>
     </div>
     <div id="d-reviews"></div>
-    <div class="addbar"><button class="btn solid" id="btn-write" style="width:100%;padding:13px">리뷰 쓰기</button></div>
+    
   </section>
 
   <section id="view-admin" hidden>
@@ -488,8 +489,13 @@ sp.querySelectorAll('button').forEach(b=>b.onclick=()=>{
 });
 $('r-body').addEventListener('input',e=>$('r-count').textContent=e.target.value.length);
 $('btn-write').onclick=()=>{
-  if(MY.reviewed){
-    toast('이 브라우저에서는 이미 리뷰를 작성했어요');
+  // '1인 1리뷰'는 전체 사이트가 아니라 현재 플랫폼별로 적용합니다.
+  const hasMineHere = Object.keys(MY.secs||{}).some(id => {
+    const r=REVIEWS.find(x=>x.id===id);
+    return !!r && r.pid===curPid;
+  });
+  if(hasMineHere){
+    toast('이 플랫폼에서는 이미 리뷰를 작성했어요');
     return;
   }
   editTarget=null;
