@@ -288,6 +288,23 @@ async function fetchReviews(){
   const data=await readJson(res);
   if(!res.ok) throw new Error(data.error||('오류 '+res.status));
   REVIEWS=data.reviews||[];
+
+  // 브라우저에만 남아 있는 오래된 '작성 완료' 상태를 서버와 맞춘다.
+  // 예전에 등록에 실패했는데 reviewed=true가 저장된 경우에도
+  // 실제 내 리뷰가 서버에 없으면 다시 '리뷰 쓰기'가 나타난다.
+  let changed=false;
+  Object.keys(MY.secs).forEach(id=>{
+    if(!REVIEWS.some(r=>r.id===id)){
+      delete MY.secs[id];
+      changed=true;
+    }
+  });
+  const hasMine=Object.keys(MY.secs).some(id=>REVIEWS.some(r=>r.id===id));
+  if(MY.reviewed!==hasMine){
+    MY.reviewed=hasMine;
+    changed=true;
+  }
+  if(changed) saveLocal();
 }
 function showError(msg){
   const el=$('status'); el.hidden=false;
