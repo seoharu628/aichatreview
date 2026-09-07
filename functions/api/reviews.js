@@ -4,6 +4,14 @@
 
 const KEY = 'reviews';
 
+function clientIp(request) {
+  // Cloudflare Pages/Workers supplies the connecting client IP here.
+  // Fall back to X-Forwarded-For for non-Cloudflare/local testing.
+  return request.headers.get('CF-Connecting-IP')
+    || (request.headers.get('X-Forwarded-For') || '').split(',')[0].trim()
+    || 'unknown';
+}
+
 async function load(env) {
   const raw = await env.REVIEWS.get(KEY);
   return raw ? JSON.parse(raw) : [];
@@ -17,7 +25,7 @@ function json(data, status = 200) {
     headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }
   });
 }
-const strip = r => { const { sec, ...pub } = r; return pub; };
+const strip = r => { const { sec, ip, ...pub } = r; return pub; };
 
 export async function onRequestGet({ env }) {
   try {
@@ -40,6 +48,14 @@ export async function onRequestPost({ request, env }) {
   catch { return json({ error: 'KV를 읽지 못했어요' }, 500); }
 
   if (b.action === 'add') {
+    const ip = clientIp(request);
+
+    // IP 하나당 동시에 존재할 수 있는 리뷰는 1개.
+    // 리뷰를 삭제하면 이 조건에서 제외되어 다시 작성할 수 있습니다.
+    if (ip !== 'unknown' && list.some(r => r.ip === ip)) {
+      return json({ error: '이 IP에서는 이미 리뷰를 작성했어요. 기존 리뷰를 삭제하면 다시 작성할 수 있어요.' }, 409);
+    }
+
     const body = String(b.body || '').trim();
     const rating = Math.round(Number(b.rating));
     const pid = String(b.pid || '');
@@ -54,6 +70,7 @@ export async function onRequestPost({ request, env }) {
       tag: '익명 ' + Math.floor(1000 + Math.random() * 9000),
       ts: Date.now(),
       rp: [],
+      ip,
       sec: crypto.randomUUID()      // 작성자만 아는 삭제용 열쇠
     };
     list.push(rev);
