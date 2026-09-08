@@ -54,6 +54,7 @@
   .btn.solid{background:var(--teal);border-color:var(--teal);color:#fff}
   .btn.solid:disabled{opacity:.45;cursor:default}
   .btn.ghost{border-color:var(--line);color:var(--muted)}
+  .addbar{margin-top:20px}
 
   .back{background:none;border:0;padding:8px 0;color:var(--muted);font-size:13.5px}
   .detailhead{border-bottom:1.5px solid var(--ink);padding-bottom:18px}
@@ -122,7 +123,6 @@
   .taggroup-buttons{display:flex;flex-wrap:wrap;gap:7px}
   .tagpick{background:var(--card);border:1px solid var(--line);padding:8px 10px;font-size:13px;border-radius:0}
   .tagpick.on{border-color:var(--teal);background:var(--teal);color:#fff}
-
   .review-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
   .review-tags span{border:1px solid var(--line);padding:2px 7px;font-size:11px;color:var(--muted);background:var(--paper)}
 </style>
@@ -151,13 +151,12 @@
         <button data-lsort="count" aria-pressed="false">리뷰 많은순</button>
       </div>
       <div id="list-body"><div class="loading">불러오는 중…</div></div>
-      <p class="note">현재 리뷰는 열람만 가능합니다. 새로운 리뷰 작성과 새로운 리뷰 작성 기능은 제공하지 않습니다.</p>
+      <p class="note">리뷰는 익명으로 작성됩니다. 후기 내용은 0~30자이며, 특징을 하나 이상 선택해야 등록할 수 있습니다.</p>
     </div>
   </section>
 
   <section id="view-detail" hidden>
     <button class="back" id="btn-back">← 목록</button>
-    <div class="addbar"><button class="btn solid" id="btn-write" style="width:100%;padding:13px">리뷰 쓰기</button></div>
     <div class="detailhead">
       <h2 id="d-name"></h2>
       <div class="avgblock">
@@ -169,6 +168,7 @@
       </div>
       <div class="dist" id="d-dist"></div>
     </div>
+    <div class="addbar"><button class="btn solid" id="btn-write" style="width:100%;padding:13px">리뷰 쓰기</button></div>
     <div class="sorts" id="detail-sorts">
       <button data-sort="new" aria-pressed="true">최신순</button>
       <button data-sort="high" aria-pressed="false">별점 높은순</button>
@@ -185,20 +185,17 @@
       <button data-tab="reported" aria-pressed="true">신고된 리뷰</button>
       <button data-tab="all" aria-pressed="false">전체 리뷰</button>
       <button data-tab="reload" aria-pressed="false">새로고침</button>
-      <button data-tab="clearall" aria-pressed="false">전체 리뷰 삭제</button>
     </div>
     <div id="admin-body"></div>
   </section>
 </div>
-
-
 <div class="sheet" id="sheet-review">
   <div class="sheetbox">
-    <h3 id="r-title">리뷰 쓰기</h3>
+    <h3>리뷰 쓰기</h3>
     <p class="hint" id="r-target"></p>
 
-    <label class="fl">후기 (선택)</label>
-    <textarea id="r-body" maxlength="30" placeholder="후기를 짧게 남겨주세요. (선택)"></textarea>
+    <label class="fl" for="r-body">후기 (선택)</label>
+    <textarea id="r-body" maxlength="30" placeholder="후기를 남겨주세요. (선택)"></textarea>
     <div class="counter"><span id="r-count">0</span> / 30</div>
 
     <label class="fl" style="margin-top:16px">특징 선택 <span style="color:var(--amber)">· 최소 1개</span></label>
@@ -206,7 +203,7 @@
 
     <div class="acts">
       <button class="btn ghost" data-close="sheet-review">취소</button>
-      <button class="btn solid" id="r-save">리뷰 등록</button>
+      <button class="btn solid" id="r-save">등록하기</button>
     </div>
   </div>
 </div>
@@ -269,13 +266,13 @@ const stars=n=>'★'.repeat(n)+'<b>'+'★'.repeat(5-n)+'</b>';
 const fdate=t=>{const d=new Date(t);return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;};
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2600);}
 
-/* ===== 로컬 기록 (신고 여부) ===== */
+/* ===== 로컬 기록 (내 리뷰 열쇠 · 신고 여부) ===== */
 function loadLocal(){
   try{
     const v=localStorage.getItem(LKEY);
     if(v){
       const d=JSON.parse(v);
-      MY={reported:d.reported||[]};
+      MY={reported:Array.isArray(d.reported)?d.reported:[]};
     }
   }catch(e){}
 }
@@ -390,7 +387,7 @@ function renderDetail(){
         <span class="stars">${stars(r.rating)}</span>
         <span class="rvwho">${esc(r.tag)} · ${fdate(r.ts)}${r.edited?' · 수정됨':''}${long?' · '+r.body.length+'자':''}</span>
       </div>
-      <div class="rvbody">${esc(shown)}</div><div class="review-tags">${(r.tags||[]).map(t=>`<span>${esc(t)}</span>`).join('')}</div>
+      <div class="rvbody">${esc(shown)}</div>${(r.tags||[]).length?`<div class="review-tags">${(r.tags||[]).map(t=>`<span>${esc(t)}</span>`).join('')}</div>`:''}
       ${long?`<button class="more" data-more="${r.id}">${open?'접기':'더 보기'}</button>`:''}
       <div class="rvfoot">
         <button class="flag" data-report="${r.id}">${MY.reported.includes(r.id)?'신고함':'신고'}</button>
@@ -473,20 +470,18 @@ function closeSheet(id){$(id).classList.remove('on');}
 document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>closeSheet(b.dataset.close));
 document.querySelectorAll('.sheet').forEach(s=>s.addEventListener('click',e=>{if(e.target===s)s.classList.remove('on');}));
 
-
 /* ===== 익명 리뷰 쓰기 ===== */
-const REVIEW_TAG_GROUPS = [
-  {title:'기술', items:['CSS 사용 가능','HTML 사용 가능','CSS 사용 불가','HTML 사용 불가']},
-  {title:'UI', items:['Ui 좋음','Ui 보통','Ui 나쁨']},
-  {title:'접속 방식', items:['홈페이지만 있음','어플 있음','홈페이지와 어플 둘 다 있음']},
-  {title:'출력량', items:['출력량 좋음','출력량 보통','출력량 나쁨']},
-  {title:'모델', items:['모델 좋음','모델 보통','모델 나쁨']}
+const REVIEW_TAG_GROUPS=[
+  {title:'기술',items:['CSS 사용 가능','HTML 사용 가능','CSS 사용 불가','HTML 사용 불가']},
+  {title:'UI',items:['Ui 좋음','Ui 보통','Ui 나쁨']},
+  {title:'접속 방식',items:['홈페이지만 있음','어플 있음','홈페이지와 어플 둘 다 있음']},
+  {title:'출력량',items:['출력량 좋음','출력량 보통','출력량 나쁨']},
+  {title:'모델',items:['모델 좋음','모델 보통','모델 나쁨']}
 ];
 let selectedTags=[];
 
 function renderTagPicker(){
   const box=$('r-tags');
-  if(!box)return;
   box.innerHTML=REVIEW_TAG_GROUPS.map(g=>`
     <div class="taggroup">
       <div class="taggroup-title">${esc(g.title)}</div>
@@ -495,28 +490,23 @@ function renderTagPicker(){
       </div>
     </div>
   `).join('');
+
   box.querySelectorAll('.tagpick').forEach(b=>b.onclick=()=>{
     const t=b.dataset.tag;
-    if(selectedTags.includes(t)){
-      selectedTags=selectedTags.filter(x=>x!==t);
-    }else{
-      selectedTags.push(t);
-    }
+    if(selectedTags.includes(t)) selectedTags=selectedTags.filter(x=>x!==t);
+    else selectedTags.push(t);
     renderTagPicker();
   });
 }
 
-if($('r-body')){
-  $('r-body').addEventListener('input',e=>$('r-count').textContent=e.target.value.length);
-}
+$('r-body').addEventListener('input',e=>{
+  $('r-count').textContent=e.target.value.length;
+});
 
 $('btn-write').onclick=()=>{
-  editTarget=null;
   selectedTags=[];
   $('r-body').value='';
   $('r-count').textContent='0';
-  $('r-title').textContent='리뷰 쓰기';
-  $('r-save').textContent='리뷰 등록';
   const p=PLATFORMS.find(x=>x.id===curPid);
   $('r-target').textContent=p?`${p.name}에 대한 익명 리뷰`:'';
   renderTagPicker();
@@ -531,14 +521,13 @@ $('r-save').onclick=async()=>{
     return;
   }
 
-  if(selectedTags.length<1){
+  if(selectedTags.length===0){
     toast('특징을 하나 이상 선택해 주세요');
     return;
   }
 
   const bannedWords=['ㅈ목','친목','친목질','친.목','ㅊ목','디씨','디씨인사이드'];
-  const blocked=bannedWords.find(w=>body.includes(w));
-  if(blocked){
+  if(bannedWords.some(w=>body.includes(w))){
     toast('사용할 수 없는 단어가 포함되어 있어요');
     return;
   }
@@ -548,7 +537,7 @@ $('r-save').onclick=async()=>{
   btn.textContent='등록 중…';
 
   try{
-    const d=await api({
+    await api({
       action:'add',
       pid:curPid,
       body,
@@ -564,7 +553,7 @@ $('r-save').onclick=async()=>{
   }
 
   btn.disabled=false;
-  btn.textContent='리뷰 등록';
+  btn.textContent='등록하기';
 };
 
 /* ===== 신고 ===== */
@@ -610,25 +599,7 @@ $('pw-ok').onclick=async()=>{
 };
 $('btn-admin-back').onclick=()=>{adminPw=null;backToList();};
 document.querySelectorAll('#admin-tabs button').forEach(b=>b.onclick=async()=>{
-  if(b.dataset.tab==='reload'){
-    try{await fetchReviews();renderAdmin();toast('새로 불러왔어요');}
-    catch(e){toast('실패: '+e.message);}
-    return;
-  }
-  if(b.dataset.tab==='clearall'){
-    if(!confirm('기존 리뷰를 전부 삭제할까요? 되돌릴 수 없어요.')) return;
-    try{
-      await api({action:'clearAll',pw:adminPw});
-      await fetchReviews();
-      adminTab='all';
-      document.querySelectorAll('#admin-tabs button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.tab==='all'));
-      renderAdmin();
-      toast('모든 리뷰를 삭제했어요');
-    }catch(e){
-      toast('전체 삭제 실패: '+e.message);
-    }
-    return;
-  }
+  if(b.dataset.tab==='reload'){try{await fetchReviews();renderAdmin();toast('새로 불러왔어요');}catch(e){toast('실패: '+e.message);}return;}
   adminTab=b.dataset.tab;
   document.querySelectorAll('#admin-tabs button').forEach(x=>x.setAttribute('aria-pressed',x===b));
   renderAdmin();
@@ -671,12 +642,7 @@ async function adminClear(id){
   }catch(e){toast('처리 실패: '+((e&&e.message)||e));}
 }
 
-
-
 loadLocal();
-// 이전에 저장된 reviewed 값만으로 버튼을 숨기지 않습니다.
-MY.reviewed=false;
-updateWriteButton();
 
 (async function boot(){
   await refresh();
