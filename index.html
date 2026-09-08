@@ -34,7 +34,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 5px}textarea
 </style>
 <style>
 #moreBtn{position:fixed;top:12px;right:14px;z-index:9999;border:0;background:transparent;font-size:24px;letter-spacing:2px;line-height:1;padding:4px 8px;cursor:pointer}
-.admin-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:18px}
+.admin-modal[hidden]{display:none!important}.admin-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:18px}
 .admin-window{position:relative;width:min(560px,100%);max-height:85vh;overflow:auto;background:var(--bg,#fff);border:1px solid var(--line,#ddd);padding:24px;border-radius:14px}
 .admin-close{position:absolute;right:12px;top:8px;border:0;background:transparent;font-size:28px;cursor:pointer}
 .admin-window input{width:100%;padding:10px;margin:12px 0;box-sizing:border-box}
@@ -117,11 +117,11 @@ async function report(id){const reason=prompt('신고 사유를 입력해 주세
 $('moreBtn').onclick=()=>{ $('adminModal').hidden=false; if(adminPw){$('adminLoginBox').hidden=true;$('adminPanel').hidden=false;loadAdmin();} };
 $('adminClose').onclick=()=>{$('adminModal').hidden=true;};
 $('adminLoginDo').onclick=async()=>{const pw=$('adminPwInput').value;if(!pw)return alert('비밀번호를 입력하세요.');const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'login',pw})});const d=await res.json();if(!d.ok)return alert('관리자 비밀번호가 올바르지 않아요.');adminPw=pw;localStorage.setItem('anonreview-admin-pw',pw);$('adminLoginBox').hidden=true;$('adminPanel').hidden=false;loadAdmin();};
-if(adminPw){adminPw='';localStorage.removeItem('anonreview-admin-pw');$('adminPanel').hidden=true;return;}const pw=prompt('관리자 비밀번호를 입력하세요.');if(pw===null)return;const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'login',pw})});const d=await res.json();if(!d.ok)return alert('관리자 비밀번호가 올바르지 않아요.');adminPw=pw;localStorage.setItem('anonreview-admin-pw',pw);$('adminPanel').hidden=false;loadAdmin();};
+
 async function loadAdmin(){if(!adminPw)return;const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'adminList',pw:adminPw})});const d=await res.json();if(!res.ok)return alert(d.error||'관리자 정보를 불러오지 못했어요.');const reports=d.reviews.filter(r=>(r.rp||[]).length);$('adminReports').innerHTML=reports.length?reports.map(r=>`<div class="admin-item"><b>${esc(PLATFORMS.find(p=>p[0]===r.pid)?.[1]||r.pid)}</b><div>${esc(r.body)}</div><div class="muted">신고 ${r.rp.length}건 · 사유: ${esc(r.rp.map(x=>x.reason).join(', '))}</div><button class="btn danger" data-admin-delete="${r.id}">리뷰 삭제</button><button class="btn" data-clear-report="${r.id}">신고 초기화</button></div>`).join(''):'<div class="empty">신고된 리뷰가 없어요.</div>';
 document.querySelectorAll('[data-admin-delete]').forEach(b=>b.onclick=()=>adminAction('delete',b.dataset.adminDelete));
 document.querySelectorAll('[data-clear-report]').forEach(b=>b.onclick=()=>adminAction('clearReports',b.dataset.clearReport));}
 async function adminAction(action,id){if(!confirm(action==='delete'?'이 리뷰를 삭제할까요?':'이 리뷰의 신고를 초기화할까요?'))return;const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action,id,pw:adminPw})});const d=await res.json();if(!res.ok)return alert(d.error||'처리 실패');await load();loadAdmin();}
-if(adminPw){ /* 관리자 비밀번호는 저장되지만 메뉴는 자동으로 열지 않음 */ }
+if(adminPw){ $('adminPanel').hidden=true; $('adminLoginBox').hidden=false; }
 load().catch(e=>alert(e.message));
 </script></body></html>
