@@ -74,7 +74,6 @@ export async function onRequestPost({ request, env }) {
       return json({ error: '사용할 수 없는 단어가 포함되어 있어요' }, 400);
     }
     const rating = Math.round(Number(b.rating));
-    const pid = String(b.pid || '');
     if (body.length < 5) return json({ error: '후기를 5자 이상 적어주세요' }, 400);
     if (body.length > 10000) return json({ error: '후기는 1만 자까지 쓸 수 있어요' }, 400);
     if (!(rating >= 1 && rating <= 5)) return json({ error: '별점을 확인해 주세요' }, 400);
