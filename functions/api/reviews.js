@@ -2,7 +2,8 @@ const KEY='reviews_v2';
 async function load(env){const x=await env.REVIEWS.get(KEY);return x?JSON.parse(x):[]}
 async function save(env,x){await env.REVIEWS.put(KEY,JSON.stringify(x))}
 function json(x,s=200){return new Response(JSON.stringify(x),{status:s,headers:{'content-type':'application/json; charset=utf-8','cache-control':'no-store'}})}
-const strip=r=>{const {sec,browserToken,...p}=r;return p};
+const strip=r=>{const {sec,browserToken,rp,...p}=r;return p};
+const adminStrip=r=>{const {sec,browserToken,...p}=r;return p};
 
 export async function onRequestGet({env}){
  try{return json({reviews:(await load(env)).map(strip)})}
@@ -33,6 +34,10 @@ export async function onRequestPost({request,env}){
   r.rating=rating;r.body=body;r.tags=tags;r.edited=true;r.updatedTs=Date.now();await save(env,list);return json({review:strip(r)});
  }
  if(b.action==='login')return json({ok:!!env.ADMIN_PW&&b.pw===env.ADMIN_PW});
+ if(b.action==='adminList'){
+  if(!env.ADMIN_PW||b.pw!==env.ADMIN_PW)return json({error:'권한이 없어요'},403);
+  return json({reviews:list.map(adminStrip)});
+ }
  if(b.action==='delete'||b.action==='clearAll'||b.action==='clearReports'){
   if(!env.ADMIN_PW||b.pw!==env.ADMIN_PW)return json({error:'권한이 없어요'},403);
   if(b.action==='delete')list=list.filter(x=>x.id!==b.id);
