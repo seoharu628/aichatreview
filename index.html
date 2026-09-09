@@ -81,7 +81,49 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 5px}textarea
   overflow-wrap:anywhere!important;
 }
 #platforms .row{overflow:visible!important}
-</style></head><body>
+</style>
+<style>
+#platforms{width:100%;overflow:visible!important}
+#platforms .row{
+  width:100%!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  gap:12px!important;
+  min-width:0!important;
+  overflow:visible!important;
+}
+#platforms .row .score{
+  flex:0 0 64px!important;
+  width:64px!important;
+  min-width:64px!important;
+}
+#platforms .row .platform-info{
+  flex:1 1 auto!important;
+  min-width:0!important;
+  width:auto!important;
+  overflow:visible!important;
+}
+#platforms .row .name{
+  display:block!important;
+  width:auto!important;
+  max-width:none!important;
+  font-size:16px!important;
+  line-height:1.45!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  word-break:keep-all!important;
+  overflow-wrap:anywhere!important;
+}
+#platforms .row .meta{
+  display:block!important;
+  font-size:14px!important;
+  line-height:1.4!important;
+}
+.stats{display:flex!important;flex-wrap:wrap!important;gap:8px!important}
+.stat{white-space:nowrap!important}
+</style>
+</head><body>
 <button id="moreBtn" aria-label="관리자 메뉴">•••</button>
 <div id="adminModal" class="admin-modal" hidden>
   <div class="admin-window">
@@ -107,7 +149,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 5px}textarea
 <label>특징 선택 · 최소 1개</label><div class="groups" id="groups"></div>
 <div class="actions"><button class="btn" id="cancel">취소</button><button class="btn solid" id="save">등록하기</button></div></div></div>
 <script>const API='/api/reviews';
-const PLATFORMS=[("p-zeta", "제타"), ("p-bloom", "블룸"), ("p-wif", "위프"), ("p-caveduck", "케이브덕"), ("p-tingle", "팅글"), ("p-melting", "멜팅"), ("p-pltoon", "플툰"), ("p-rumo", "루모"), ("p-inkchat", "잉크챗"), ("p-umai", "우마이"), ("p-doomchit", "둠칫"), ("p-crack", "크랙"), ("p-veil", "베일"), ("p-kkuook", "꾸욱"), ("p-lape", "라페"), ("p-neona", "네오나"), ("p-tookit", "투킷"), ("p-lipin", "리핀"), ("p-ropan", "로판"), ("p-postype", "포스타입"), ("tikitaka", "티키타카"), ("moari", "모아리"), ("bellchat", "벨챗"), ("elin", "엘린"), ("tipot", "티팟"), ("crushpop", "크러쉬팝")];
+const PLATFORMS=[["p-zeta", "제타"], ["p-bloom", "블룸"], ["p-wif", "위프"], ["p-caveduck", "케이브덕"], ["p-tingle", "팅글"], ["p-melting", "멜팅"], ["p-pltoon", "플툰"], ["p-rumo", "루모"], ["p-inkchat", "잉크챗"], ["p-umai", "우마이"], ["p-doomchit", "둠칫"], ["p-crack", "크랙"], ["p-veil", "베일"], ["p-kkuook", "꾸욱"], ["p-lape", "라페"], ["p-neona", "네오나"], ["p-tookit", "투킷"], ["p-lipin", "리핀"], ["p-ropan", "로판"], ["p-postype", "포스타입"], ["tikitaka", "티키타카"], ["moari", "모아리"], ["bellchat", "벨챗"], ["elin", "엘린"], ["tipot", "티팟"], ["crushpop", "크러쉬팝"]];
 const TAGS=[
 ['기술',['CSS 사용 가능','HTML 사용 가능','CSS 사용 불가','HTML 사용 불가']],
 ['UI',['Ui 좋음','Ui 보통','Ui 나쁨']],
@@ -123,14 +165,23 @@ const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sortedPlatforms=()=>[...PLATFORMS].sort((a,b)=>a[1].localeCompare(b[1],'ko'));
 async function load(){const r=await fetch(API+'?t='+Date.now());const d=await r.json();if(!r.ok)throw Error(d.error||'불러오기 실패');REVIEWS=d.reviews||[];renderList();if(pid)renderDetail();}
-function renderList(){ $('platforms').innerHTML=sortedPlatforms().map(p=>{const rs=REVIEWS.filter(r=>r.pid===p[0]),a=rs.length?(rs.reduce((x,r)=>x+r.rating,0)/rs.length).toFixed(1):'–';return `<button class="row" data-p="${p[0]}"><span class="score">${a}</span><span><span class="name">${esc(p[1])}</span><br><span class="meta">리뷰 ${rs.length}개</span></span></button>`}).join('');$('count').textContent=PLATFORMS.length+'곳 · 리뷰 '+REVIEWS.length+'개';document.querySelectorAll('#platforms [data-p]').forEach(b=>{
-  b.addEventListener('click',e=>{
-    e.preventDefault();
-    e.stopPropagation();
-    const selectedPid=b.getAttribute('data-p');
-    open(selectedPid);
+function renderList(){
+  $('platforms').innerHTML=sortedPlatforms().map(p=>{
+    const rs=REVIEWS.filter(r=>r.pid===p[0]);
+    const a=rs.length?(rs.reduce((x,r)=>x+r.rating,0)/rs.length).toFixed(1):'–';
+    return `<button type="button" class="row" data-p="${esc(p[0])}">
+      <span class="score">${a}</span>
+      <span class="platform-info">
+        <span class="name">${esc(p[1])}</span>
+        <span class="meta">리뷰 ${rs.length}개</span>
+      </span>
+    </button>`;
+  }).join('');
+  $('count').textContent=PLATFORMS.length+'곳 · 리뷰 '+REVIEWS.length+'개';
+  document.querySelectorAll('#platforms .row').forEach(b=>{
+    b.onclick=()=>open(b.dataset.p);
   });
-});}
+}
 function open(x){pid=x;$('list').hidden=true;$('detail').hidden=false;renderDetail();scrollTo(0,0);}
 $('back').onclick=()=>{pid='';$('detail').hidden=true;$('list').hidden=false;renderList();};
 function renderDetail(){const p=PLATFORMS.find(x=>x[0]===pid),rs=REVIEWS.filter(r=>r.pid===pid);$('dname').textContent=p[1];$('dcnt').textContent='리뷰 '+rs.length+'개';$('avg').textContent=rs.length?(rs.reduce((a,r)=>a+r.rating,0)/rs.length).toFixed(1):'–';
