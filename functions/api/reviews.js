@@ -2,7 +2,7 @@
 // KV binding: REVIEWS
 // Environment variable: ADMIN_PW
 
-const KEY='reviews_v2';
+const KEY='reviews';
 
 async function load(env){
   const x=await env.REVIEWS.get(KEY);
@@ -75,10 +75,10 @@ export async function onRequestPost({request,env}){
       return json({error:'별점을 선택해 주세요.'},400);
     }
     if(body.length>30)return json({error:'후기는 30자까지 쓸 수 있어요.'},400);
-    if(!tags.length)return json({error:'특징을 하나 이상 선택해 주세요.'},400);
+    
 
     const rev={
-      id:crypto.randomUUID(),pid,rating,body,tags,ts:Date.now(),
+      id:crypto.randomUUID(),pid,rating,body,tags,tag:'익명',ts:Date.now(),
       edited:false,rp:[],browserToken:bt,sec:crypto.randomUUID()
     };
     list.push(rev);
@@ -95,7 +95,7 @@ export async function onRequestPost({request,env}){
       return json({error:'별점을 선택해 주세요.'},400);
     }
     if(body.length>30)return json({error:'후기는 30자까지 쓸 수 있어요.'},400);
-    if(!tags.length)return json({error:'특징을 하나 이상 선택해 주세요.'},400);
+    
     r.rating=rating;r.body=body;r.tags=tags;r.edited=true;r.updatedTs=Date.now();
     await save(env,list);
     return json({review:strip(r)});
