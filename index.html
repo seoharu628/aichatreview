@@ -55,6 +55,32 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 5px}textarea
   line-height:1.5!important;
 }
 #platforms .row .meta{display:block!important}
+</style>
+<style>
+#platforms .row .name{
+  font-size:16px!important;
+  line-height:1.4!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  word-break:keep-all!important;
+  overflow-wrap:anywhere!important;
+}
+#platforms .row{
+  overflow:visible!important;
+}
+</style>
+<style>
+#platforms .row .name{
+  font-size:16px!important;
+  line-height:1.4!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+  word-break:keep-all!important;
+  overflow-wrap:anywhere!important;
+}
+#platforms .row{overflow:visible!important}
 </style></head><body>
 <button id="moreBtn" aria-label="관리자 메뉴">•••</button>
 <div id="adminModal" class="admin-modal" hidden>
@@ -109,15 +135,16 @@ function open(x){pid=x;$('list').hidden=true;$('detail').hidden=false;renderDeta
 $('back').onclick=()=>{pid='';$('detail').hidden=true;$('list').hidden=false;renderList();};
 function renderDetail(){const p=PLATFORMS.find(x=>x[0]===pid),rs=REVIEWS.filter(r=>r.pid===pid);$('dname').textContent=p[1];$('dcnt').textContent='리뷰 '+rs.length+'개';$('avg').textContent=rs.length?(rs.reduce((a,r)=>a+r.rating,0)/rs.length).toFixed(1):'–';
 const counts=[1,2,3,4,5].map(n=>rs.filter(r=>r.rating===n).length);
-$('starStats').innerHTML='<div class="stats">'+counts.map((n,i)=>`<span class="stat">★ ${n}점 · ${i}개</span>`).join('')+'</div>';
+$('starStats').innerHTML='<div class="stats">'+counts.map((n,i)=>`<span class="stat">★ ${i+1}점 · ${n}개</span>`).join('')+'</div>';
 const mine=getMine();
 $('writeArea').innerHTML=mine
  ? '<button class="btn solid" id="myEdit">리뷰 수정</button>'
  : '<button class="btn solid" id="write">리뷰 쓰기</button>';
 const wb=$('write'); if(wb) wb.onclick=openForm;
 const me=$('myEdit'); if(me) me.onclick=()=>edit(mine.id);
-$('reviews').innerHTML=rs.length?rs.slice().sort((a,b)=>b.ts-a.ts).map(r=>`<article class="review"><div class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div><div class="muted">익명 · ${new Date(r.ts).toLocaleDateString('ko-KR')}${r.edited?' · 수정됨':''}</div><div>${esc(r.body)}</div><div class="tagwrap">${(r.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><div class="review-actions">${mine?.id===r.id?'<button class="btn" data-edit="'+r.id+'">리뷰 수정</button>':''}<button class="btn danger" data-report="${r.id}">신고</button></div></article>`).join(''):'<div class="empty">아직 리뷰가 없어요.</div>';
+$('reviews').innerHTML=rs.length?rs.slice().sort((a,b)=>b.ts-a.ts).map(r=>`<article class="review"><div class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div><div class="muted">익명 · ${new Date(r.ts).toLocaleDateString('ko-KR')}${r.edited?' · 수정됨':''}</div><div>${esc(r.body)}</div><div class="tagwrap">${(r.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><div class="review-actions">${mine?.id===r.id?'<button class="btn" data-edit="'+r.id+'">리뷰 수정</button><button class="btn danger" data-mydelete="'+r.id+'">내 리뷰 삭제</button>':''}<button class="btn danger" data-report="${r.id}">신고</button></div></article>`).join(''):'<div class="empty">아직 리뷰가 없어요.</div>';
 document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.edit));
+document.querySelectorAll('[data-mydelete]').forEach(b=>b.onclick=()=>myDelete(b.dataset.mydelete));
 document.querySelectorAll('[data-report]').forEach(b=>b.onclick=()=>report(b.dataset.report));}
 function renderStars(){$('stars').innerHTML=[1,2,3,4,5].map(i=>`<button type="button" class="${i<=rating?'on':''}" data-r="${i}">${i<=rating?'★':'☆'}</button>`).join('');document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{rating=+b.dataset.r;renderStars();});}
 function renderGroups(){$('groups').innerHTML=TAGS.map(g=>`<div><div class="gtitle">${esc(g[0])}</div><div class="choices">${g[1].map(t=>`<button type="button" class="choice ${chosen.includes(t)?'on':''}" data-tag="${esc(t)}">${esc(t)}</button>`).join('')}</div></div>`).join('');document.querySelectorAll('[data-tag]').forEach(b=>b.onclick=()=>{const t=b.dataset.tag;chosen=chosen.includes(t)?chosen.filter(x=>x!==t):[...chosen,t];renderGroups();});}
@@ -127,8 +154,22 @@ function openForm(){if(!pid)return;editId=null;rating=0;chosen=[];$('body').valu
 function edit(id){const r=REVIEWS.find(x=>x.id===id);if(r&&r.pid!==pid)return alert('현재 플랫폼의 리뷰만 수정할 수 있어요.');if(!r||getMine()?.id!==id)return alert('이 브라우저에서 작성한 리뷰만 수정할 수 있어요.');editId=id;rating=r.rating;chosen=[...(r.tags||[])];$('body').value=r.body||'';$('len').textContent=$('body').value.length;$('stitle').textContent='리뷰 수정';$('save').textContent='수정하기';$('target').textContent=PLATFORMS.find(x=>x[0]===r.pid)[1]+'에 대한 익명 리뷰';renderStars();renderGroups();$('sheet').classList.add('on');}
 $('cancel').onclick=()=> $('sheet').classList.remove('on');
 $('save').onclick=async()=>{if(rating<1)return alert('별점을 선택해 주세요.');if(chosen.length<1)return alert('특징을 하나 이상 선택해 주세요.');const body=$('body').value.trim();if(body.length>30)return alert('후기는 30자까지 입력할 수 있어요.');let browserToken=localStorage.getItem('anonreview-browser-token');if(!browserToken){browserToken=crypto.randomUUID();localStorage.setItem('anonreview-browser-token',browserToken);}const payload={action:editId?'edit':'add',pid,rating,body,tags:chosen,browserToken};if(editId){const r=REVIEWS.find(x=>x.id===editId);payload.id=editId;payload.sec=localStorage.getItem('anonreview-sec')||r?.sec;}try{const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});const d=await res.json();if(!res.ok)throw Error(d.error||'실패');if(!editId){localStorage.setItem('anonreview-id',d.review.id);localStorage.setItem('anonreview-sec',d.sec||'');}$('sheet').classList.remove('on');await load();}catch(e){alert(e.message);}};
+async function myDelete(id){
+  const mine=getMine();
+  if(!mine||mine.id!==id)return alert('이 브라우저에서 작성한 리뷰만 삭제할 수 있어요.');
+  if(!confirm('내 리뷰를 삭제할까요?'))return;
+  const sec=localStorage.getItem('anonreview-sec')||'';
+  try{
+    const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'ownerDelete',id,sec})});
+    const d=await res.json();
+    if(!res.ok)throw Error(d.error||'삭제 실패');
+    localStorage.removeItem('anonreview-id');
+    localStorage.removeItem('anonreview-sec');
+    await load();
+  }catch(e){alert(e.message);}
+}
 async function report(id){const reason=prompt('신고 사유를 입력해 주세요. (예: 욕설, 광고, 부적절한 내용)');if(reason===null)return;try{const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'report',id,reason})});const d=await res.json();if(!res.ok)throw Error(d.error||'신고 실패');alert('신고가 접수되었습니다.');}catch(e){alert(e.message);}}
-$('moreBtn').onclick=()=>{ $('adminModal').hidden=false; if(adminPw){$('adminLoginBox').hidden=true;$('adminPanel').hidden=false;loadAdmin();} };
+$('moreBtn').onclick=()=>{ $('adminModal').hidden=false; adminPw='';localStorage.removeItem('anonreview-admin-pw'); };
 $('adminClose').onclick=()=>{$('adminModal').hidden=true;};
 $('adminLoginDo').onclick=async()=>{const pw=$('adminPwInput').value;if(!pw)return alert('비밀번호를 입력하세요.');const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'login',pw})});const d=await res.json();if(!d.ok)return alert('관리자 비밀번호가 올바르지 않아요.');adminPw=pw;localStorage.setItem('anonreview-admin-pw',pw);$('adminLoginBox').hidden=true;$('adminPanel').hidden=false;loadAdmin();};
 
