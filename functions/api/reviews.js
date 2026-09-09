@@ -1,6 +1,16 @@
 const KEY='reviews_v2';
+const RESET_KEY='reviews_v3_reset_20260909';
 
 async function load(env){
+  // 기존에 저장되어 있던 리뷰를 이번 버전에서 한 번만 초기화합니다.
+  // 초기화 후에는 새로 작성한 리뷰가 정상적으로 유지됩니다.
+  const reset=await env.REVIEWS.get(RESET_KEY);
+  if(!reset){
+    await env.REVIEWS.put(KEY,'[]');
+    await env.REVIEWS.put(RESET_KEY,'done');
+    return [];
+  }
+
   const x=await env.REVIEWS.get(KEY);
   return x?JSON.parse(x):[];
 }
