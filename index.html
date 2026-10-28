@@ -227,15 +227,45 @@ async function myDelete(id){
 }
 async function likeReview(id){
   const button=document.querySelector(`[data-like="${CSS.escape(id)}"]`);
-  if(button?.disabled)return;
-  if(button)button.disabled=true;
+  if(!button || button.dataset.busy==='1')return;
+  const review=REVIEWS.find(r=>r.id===id);
+  if(!review)return;
+  if(review.browserToken && review.browserToken===getBrowserToken()){
+    alert('내 리뷰에는 좋아요를 누를 수 없어요.');
+    return;
+  }
+  // 낙관적 UI: 서버 응답을 기다리지 않고 화면부터 즉시 갱신
+  const oldLiked=!!review.likedByMe;
+  const oldCount=Number(review.likeCount)||0;
+  const nextLiked=!oldLiked;
+  const nextCount=Math.max(0,oldCount+(nextLiked?1:-1));
+  review.likedByMe=nextLiked;
+  review.likeCount=nextCount;
+  button.dataset.busy='1';
+  button.disabled=true;
+  button.setAttribute('aria-pressed',String(nextLiked));
+  button.textContent=`${nextLiked?'♥ 좋아요 취소':'♡ 좋아요'} ${nextCount}`;
+  button.style.opacity='0.7';
   try{
     const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'toggleLike',id,browserToken:getBrowserToken()})});
     const d=await res.json();
     if(!res.ok)throw Error(d.error||'좋아요 처리에 실패했어요.');
-    await load();
-  }catch(e){alert(e.message);}
-  finally{if(button)button.disabled=false;}
+    // 서버가 확정한 수치로 동기화하되 전체 리뷰 목록은 다시 불러오지 않음
+    review.likedByMe=!!d.liked;
+    review.likeCount=Number(d.likeCount)||0;
+    button.setAttribute('aria-pressed',String(review.likedByMe));
+    button.textContent=`${review.likedByMe?'♥ 좋아요 취소':'♡ 좋아요'} ${review.likeCount}`;
+  }catch(e){
+    review.likedByMe=oldLiked;
+    review.likeCount=oldCount;
+    button.setAttribute('aria-pressed',String(oldLiked));
+    button.textContent=`${oldLiked?'♥ 좋아요 취소':'♡ 좋아요'} ${oldCount}`;
+    alert(e.message);
+  }finally{
+    button.disabled=false;
+    button.dataset.busy='0';
+    button.style.opacity='';
+  }
 }
 async function report(id){const reason=prompt('신고 사유를 입력해 주세요. (예: 욕설, 광고, 부적절한 내용)');if(reason===null)return;try{const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'report',id,reason})});const d=await res.json();if(!res.ok)throw Error(d.error||'신고 실패');alert('신고가 접수되었습니다.');}catch(e){alert(e.message);}}
 $('moreBtn').onclick=()=>{ $('adminModal').hidden=false; adminPw='';localStorage.removeItem('anonreview-admin-pw'); };
