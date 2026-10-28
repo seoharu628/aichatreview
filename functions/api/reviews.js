@@ -168,8 +168,9 @@ export async function onRequestPost({request,env}){
     return json({ok:true});
   }
 
-  // 다른 사람이 작성한 리뷰 좋아요 토글: 브라우저 토큰당 리뷰별로 누르기/취소 가능
-  if(b.action==='toggleLike'){
+  // 좋아요 상태를 명시적으로 저장합니다. 재시도/연속 클릭에도 중복 토글되지 않으며,
+  // 각 브라우저 토큰은 자신이 남긴 좋아요만 추가/취소할 수 있습니다.
+  if(b.action==='setLike' || b.action==='toggleLike'){
     const r=list.find(x=>x.id===String(b.id||''));
     if(!r) return json({error:'리뷰가 없어요.'},404);
     const token=String(b.browserToken||'');
@@ -178,17 +179,20 @@ export async function onRequestPost({request,env}){
       return json({error:'내 리뷰에는 좋아요를 누를 수 없어요.'},403);
     }
     r.likeTokens=Array.isArray(r.likeTokens)?r.likeTokens:[];
-    const index=r.likeTokens.indexOf(token);
     let liked;
-    if(index>=0){
-      r.likeTokens.splice(index,1);
-      liked=false;
+    if(b.action==='setLike'){
+      liked=!!b.liked;
+      const index=r.likeTokens.indexOf(token);
+      if(liked && index<0) r.likeTokens.push(token);
+      if(!liked && index>=0) r.likeTokens.splice(index,1);
     }else{
-      r.likeTokens.push(token);
-      liked=true;
+      // 구버전 프런트엔드 호환
+      const index=r.likeTokens.indexOf(token);
+      if(index>=0){r.likeTokens.splice(index,1);liked=false;}
+      else{r.likeTokens.push(token);liked=true;}
     }
     await save(env,list);
-    return json({ok:true,liked,likeCount:r.likeTokens.length});
+    return json({ok:true,liked:r.likeTokens.includes(token),likeCount:r.likeTokens.length});
   }
 
   // 리뷰 신고
