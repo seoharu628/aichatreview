@@ -40,15 +40,6 @@ export async function onRequestPost({ request, env }) {
   try { b = await request.json(); } catch { return json({ error: '잘못된 요청' }, 400); }
 
   const pw = env.ADMIN_PW || '';
-  if(b.action==='signup'){
-    const user=String(b.user||'').trim(),pass=String(b.pass||'');
-    if(!/^[A-Za-z0-9_가-힣]{3,20}$/.test(user))return json({error:'아이디는 3~20자로 입력해 주세요'},400);
-    if(pass.length<6)return json({error:'비밀번호는 6자 이상이어야 해요'},400);
-    if(await getUser(env,user))return json({error:'이미 사용 중인 아이디예요'},409);
-    const salt=await token(),hash=await passHash(pass,salt);
-    await env.REVIEWS.put(USER_PREFIX+user,JSON.stringify({user,salt,hash,createdTs:Date.now()}));
-    return json({ok:true});
-  }
   if(b.action==='accountLogin'){
     const user=String(b.user||'').trim(),pass=String(b.pass||''),u=await getUser(env,user);
     if(!u||await passHash(pass,u.salt)!==u.hash)return json({error:'아이디 또는 비밀번호가 맞지 않아요'},401);
@@ -98,7 +89,7 @@ export async function onRequestPost({ request, env }) {
     if (t.sec !== b.sec) return json({ error: '수정할 권한이 없어요' }, 403);
 
     const body = String(b.body || '').trim();
-    const bannedWords = ['ㅈ목','친목','친.목','ㅊ목','디씨','디씨인사이드'];
+    const bannedWords = ['ㅈ목','친목','친목질','친.목','ㅊ목','디씨','디씨인사이드'];
     if (bannedWords.some(word => body.includes(word))) {
       return json({ error: '사용할 수 없는 단어가 포함되어 있어요' }, 400);
     }
@@ -132,10 +123,30 @@ export async function onRequestPost({ request, env }) {
     return json({ ok: true });
   }
 
-  if (b.action === 'clearAll') {
+  if (b.action === 'clearAccounts') {
     if (!pw || b.pw !== pw) return json({ error: '권한이 없어요' }, 403);
-    await save(env, []);
-    return json({ ok: true });
+    let deleted = 0;
+    let cursor = undefined;
+    do {
+      const page = await env.REVIEWS.list({ prefix: USER_PREFIX, cursor });
+      for (const key of page.keys) {
+        await env.REVIEWS.delete(key.name);
+        deleted++;
+      }
+      cursor = page.list_complete ? undefined : page.cursor;
+    } while (cursor);
+
+    cursor = undefined;
+    do {
+      const page = await env.REVIEWS.list({ prefix: SESSION_PREFIX, cursor });
+      for (const key of page.keys) {
+        await env.REVIEWS.delete(key.name);
+        deleted++;
+      }
+      cursor = page.list_complete ? undefined : page.cursor;
+    } while (cursor);
+
+    return json({ ok: true, deleted });
   }
 
   if (b.action === 'clearReports') {
