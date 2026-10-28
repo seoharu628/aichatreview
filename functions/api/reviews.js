@@ -168,8 +168,8 @@ export async function onRequestPost({request,env}){
     return json({ok:true});
   }
 
-  // 다른 사람이 작성한 리뷰에 좋아요: 브라우저 토큰당 리뷰별 1회
-  if(b.action==='like'){
+  // 다른 사람이 작성한 리뷰 좋아요 토글: 브라우저 토큰당 리뷰별로 누르기/취소 가능
+  if(b.action==='toggleLike'){
     const r=list.find(x=>x.id===String(b.id||''));
     if(!r) return json({error:'리뷰가 없어요.'},404);
     const token=String(b.browserToken||'');
@@ -178,12 +178,17 @@ export async function onRequestPost({request,env}){
       return json({error:'내 리뷰에는 좋아요를 누를 수 없어요.'},403);
     }
     r.likeTokens=Array.isArray(r.likeTokens)?r.likeTokens:[];
-    if(r.likeTokens.includes(token)){
-      return json({error:'이 리뷰에는 이미 좋아요를 눌렀어요.'},409);
+    const index=r.likeTokens.indexOf(token);
+    let liked;
+    if(index>=0){
+      r.likeTokens.splice(index,1);
+      liked=false;
+    }else{
+      r.likeTokens.push(token);
+      liked=true;
     }
-    r.likeTokens.push(token);
     await save(env,list);
-    return json({ok:true,likeCount:r.likeTokens.length});
+    return json({ok:true,liked,likeCount:r.likeTokens.length});
   }
 
   // 리뷰 신고
