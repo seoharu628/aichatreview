@@ -149,7 +149,7 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 5px}textarea
 <label>특징 선택 · 최소 1개</label><div class="groups" id="groups"></div>
 <div class="actions"><button class="btn" id="cancel">취소</button><button class="btn solid" id="save">등록하기</button></div></div></div>
 <script>const API='/api/reviews';
-const PLATFORMS=[["p-zeta", "제타"], ["p-bloom", "블룸"], ["p-wif", "위프"], ["p-caveduck", "케이브덕"], ["p-tingle", "팅글"], ["p-melting", "멜팅"], ["p-pltoon", "플툰"], ["p-rumo", "루모"], ["p-inkchat", "잉크챗"], ["p-umai", "우마이"], ["p-doomchit", "둠칫"], ["p-crack", "크랙"], ["p-veil", "베일"], ["p-kkuook", "꾸욱"], ["p-lape", "라페"], ["p-neona", "네오나"], ["p-tookit", "투킷"], ["p-lipin", "리핀"], ["p-ropan", "로판"], ["p-postype", "포스타입"], ["tikita", "티키타"], ["moari", "모아리"], ["bellchat", "벨챗"], ["elin", "엘린"], ["tipot", "티팟"], ["crushpop", "크러쉬팝"]];
+const PLATFORMS=[["p-zeta", "제타"], ["p-bloom", "블룸"], ["p-wif", "위프"], ["p-caveduck", "케이브덕"], ["p-tingle", "팅글"], ["p-melting", "멜팅"], ["p-pltoon", "플툰"], ["p-rumo", "루모"], ["p-inkchat", "잉크챗"], ["p-umai", "우마이"], ["p-doomchit", "둠칫"], ["p-crack", "크랙"], ["p-kkuook", "꾸욱"], ["p-lape", "라페"], ["p-neona", "멜로이"], ["p-jello", "젤로"], ["p-noirum", "누아룸"], ["p-zepeto", "제페토"], ["p-tookit", "투킷"], ["p-lipin", "리핀"], ["p-ropan", "로판"], ["p-postype", "포스타입"], ["tikita", "티키타"], ["moari", "모아리"], ["bellchat", "벨챗"], ["elin", "엘린"], ["tipot", "티팟"], ["crushpop", "크러쉬팝"]];
 const TAGS=[
 ['기술',['CSS 사용 가능','HTML 사용 가능','CSS 사용 불가','HTML 사용 불가']],
 ['UI',['Ui 좋음','Ui 보통','Ui 나쁨']],
@@ -164,7 +164,12 @@ let REVIEWS=[],pid='',rating=0,chosen=[],editId=null,adminPw=localStorage.getIte
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sortedPlatforms=()=>[...PLATFORMS].sort((a,b)=>a[1].localeCompare(b[1],'ko'));
-async function load(){const r=await fetch(API+'?t='+Date.now());const d=await r.json();if(!r.ok)throw Error(d.error||'불러오기 실패');REVIEWS=d.reviews||[];renderList();if(pid)renderDetail();}
+function getBrowserToken(){
+  let token=localStorage.getItem('anonreview-browser-token');
+  if(!token){token=crypto.randomUUID();localStorage.setItem('anonreview-browser-token',token);}
+  return token;
+}
+async function load(){const token=encodeURIComponent(getBrowserToken());const r=await fetch(API+'?token='+token+'&t='+Date.now());const d=await r.json();if(!r.ok)throw Error(d.error||'불러오기 실패');REVIEWS=d.reviews||[];renderList();if(pid)renderDetail();}
 function renderList(){
   $('platforms').innerHTML=sortedPlatforms().map(p=>{
     const rs=REVIEWS.filter(r=>r.pid===p[0]);
@@ -193,9 +198,10 @@ $('writeArea').innerHTML=mine
  : '<button class="btn solid" id="write">리뷰 쓰기</button>';
 const wb=$('write'); if(wb) wb.onclick=openForm;
 const me=$('myEdit'); if(me) me.onclick=()=>edit(mine.id);
-$('reviews').innerHTML=rs.length?rs.slice().sort((a,b)=>b.ts-a.ts).map(r=>`<article class="review"><div class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div><div class="muted">익명 · ${new Date(r.ts).toLocaleDateString('ko-KR')}${r.edited?' · 수정됨':''}</div><div>${esc(r.body)}</div><div class="tagwrap">${(r.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><div class="review-actions">${mine?.id===r.id?'<button class="btn" data-edit="'+r.id+'">리뷰 수정</button><button class="btn danger" data-mydelete="'+r.id+'">내 리뷰 삭제</button>':''}<button class="btn danger" data-report="${r.id}">신고</button></div></article>`).join(''):'<div class="empty">아직 리뷰가 없어요.</div>';
+$('reviews').innerHTML=rs.length?rs.slice().sort((a,b)=>b.ts-a.ts).map(r=>`<article class="review"><div class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div><div class="muted">익명 · ${new Date(r.ts).toLocaleDateString('ko-KR')}${r.edited?' · 수정됨':''}</div><div>${esc(r.body)}</div><div class="tagwrap">${(r.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><div class="review-actions">${mine?.id===r.id?'<button class="btn" data-edit="'+r.id+'">리뷰 수정</button><button class="btn danger" data-mydelete="'+r.id+'">내 리뷰 삭제</button>':''}<button class="btn" data-like="${r.id}" ${r.likedByMe?'disabled aria-pressed="true"':''}>${r.likedByMe?'♥ 좋아요':'♡ 좋아요'} ${Number(r.likeCount)||0}</button><button class="btn danger" data-report="${r.id}">신고</button></div></article>`).join(''):'<div class="empty">아직 리뷰가 없어요.</div>';
 document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.edit));
 document.querySelectorAll('[data-mydelete]').forEach(b=>b.onclick=()=>myDelete(b.dataset.mydelete));
+document.querySelectorAll('[data-like]').forEach(b=>b.onclick=()=>likeReview(b.dataset.like));
 document.querySelectorAll('[data-report]').forEach(b=>b.onclick=()=>report(b.dataset.report));}
 function renderStars(){$('stars').innerHTML=[1,2,3,4,5].map(i=>`<button type="button" class="${i<=rating?'on':''}" data-r="${i}">${i<=rating?'★':'☆'}</button>`).join('');document.querySelectorAll('[data-r]').forEach(b=>b.onclick=()=>{rating=+b.dataset.r;renderStars();});}
 function renderGroups(){$('groups').innerHTML=TAGS.map(g=>`<div><div class="gtitle">${esc(g[0])}</div><div class="choices">${g[1].map(t=>`<button type="button" class="choice ${chosen.includes(t)?'on':''}" data-tag="${esc(t)}">${esc(t)}</button>`).join('')}</div></div>`).join('');document.querySelectorAll('[data-tag]').forEach(b=>b.onclick=()=>{const t=b.dataset.tag;chosen=chosen.includes(t)?chosen.filter(x=>x!==t):[...chosen,t];renderGroups();});}
@@ -216,6 +222,16 @@ async function myDelete(id){
     if(!res.ok)throw Error(d.error||'삭제 실패');
     localStorage.removeItem('anonreview-id');
     localStorage.removeItem('anonreview-sec');
+    await load();
+  }catch(e){alert(e.message);}
+}
+async function likeReview(id){
+  const button=document.querySelector(`[data-like="${CSS.escape(id)}"]`);
+  if(button?.disabled)return;
+  try{
+    const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'like',id,browserToken:getBrowserToken()})});
+    const d=await res.json();
+    if(!res.ok)throw Error(d.error||'좋아요 처리에 실패했어요.');
     await load();
   }catch(e){alert(e.message);}
 }
