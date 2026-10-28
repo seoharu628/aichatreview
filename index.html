@@ -198,7 +198,7 @@ $('writeArea').innerHTML=mine
  : '<button class="btn solid" id="write">리뷰 쓰기</button>';
 const wb=$('write'); if(wb) wb.onclick=openForm;
 const me=$('myEdit'); if(me) me.onclick=()=>edit(mine.id);
-$('reviews').innerHTML=rs.length?rs.slice().sort((a,b)=>b.ts-a.ts).map(r=>`<article class="review"><div class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div><div class="muted">익명 · ${new Date(r.ts).toLocaleDateString('ko-KR')}${r.edited?' · 수정됨':''}</div><div>${esc(r.body)}</div><div class="tagwrap">${(r.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><div class="review-actions">${mine?.id===r.id?'<button class="btn" data-edit="'+r.id+'">리뷰 수정</button><button class="btn danger" data-mydelete="'+r.id+'">내 리뷰 삭제</button>':''}<button class="btn" data-like="${r.id}" ${r.likedByMe?'disabled aria-pressed="true"':''}>${r.likedByMe?'♥ 좋아요':'♡ 좋아요'} ${Number(r.likeCount)||0}</button><button class="btn danger" data-report="${r.id}">신고</button></div></article>`).join(''):'<div class="empty">아직 리뷰가 없어요.</div>';
+$('reviews').innerHTML=rs.length?rs.slice().sort((a,b)=>b.ts-a.ts).map(r=>`<article class="review"><div class="stars">${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</div><div class="muted">익명 · ${new Date(r.ts).toLocaleDateString('ko-KR')}${r.edited?' · 수정됨':''}</div><div>${esc(r.body)}</div><div class="tagwrap">${(r.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><div class="review-actions">${mine?.id===r.id?'<button class="btn" data-edit="'+r.id+'">리뷰 수정</button><button class="btn danger" data-mydelete="'+r.id+'">내 리뷰 삭제</button>':''}<button class="btn" data-like="${r.id}" aria-pressed="${r.likedByMe?'true':'false'}">${r.likedByMe?'♥ 좋아요 취소':'♡ 좋아요'} ${Number(r.likeCount)||0}</button><button class="btn danger" data-report="${r.id}">신고</button></div></article>`).join(''):'<div class="empty">아직 리뷰가 없어요.</div>';
 document.querySelectorAll('[data-edit]').forEach(b=>b.onclick=()=>edit(b.dataset.edit));
 document.querySelectorAll('[data-mydelete]').forEach(b=>b.onclick=()=>myDelete(b.dataset.mydelete));
 document.querySelectorAll('[data-like]').forEach(b=>b.onclick=()=>likeReview(b.dataset.like));
@@ -228,12 +228,14 @@ async function myDelete(id){
 async function likeReview(id){
   const button=document.querySelector(`[data-like="${CSS.escape(id)}"]`);
   if(button?.disabled)return;
+  if(button)button.disabled=true;
   try{
-    const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'like',id,browserToken:getBrowserToken()})});
+    const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'toggleLike',id,browserToken:getBrowserToken()})});
     const d=await res.json();
     if(!res.ok)throw Error(d.error||'좋아요 처리에 실패했어요.');
     await load();
   }catch(e){alert(e.message);}
+  finally{if(button)button.disabled=false;}
 }
 async function report(id){const reason=prompt('신고 사유를 입력해 주세요. (예: 욕설, 광고, 부적절한 내용)');if(reason===null)return;try{const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'report',id,reason})});const d=await res.json();if(!res.ok)throw Error(d.error||'신고 실패');alert('신고가 접수되었습니다.');}catch(e){alert(e.message);}}
 $('moreBtn').onclick=()=>{ $('adminModal').hidden=false; adminPw='';localStorage.removeItem('anonreview-admin-pw'); };
