@@ -1,16 +1,7 @@
 const KEY='reviews_v2';
-const RESET_KEY='reviews_v3_reset_20260909';
 
+// 중요: 기존 KV 데이터를 자동 초기화하거나 덮어쓰지 않습니다.
 async function load(env){
-  // 기존에 저장되어 있던 리뷰를 이번 버전에서 한 번만 초기화합니다.
-  // 초기화 후에는 새로 작성한 리뷰가 정상적으로 유지됩니다.
-  const reset=await env.REVIEWS.get(RESET_KEY);
-  if(!reset){
-    await env.REVIEWS.put(KEY,'[]');
-    await env.REVIEWS.put(RESET_KEY,'done');
-    return [];
-  }
-
   const x=await env.REVIEWS.get(KEY);
   return x?JSON.parse(x):[];
 }
@@ -29,14 +20,15 @@ function json(x,s=200){
   });
 }
 
-const strip=r=>{
-  const {sec,browserToken,rp,...p}=r;
-  return p;
+const strip=(r,token='')=>{
+  const {sec,browserToken,rp,likeTokens,...p}=r;
+  const tokens=Array.isArray(likeTokens)?likeTokens:[];
+  return {...p,likeCount:tokens.length,likedByMe:!!token&&tokens.includes(token)};
 };
 
 const adminStrip=r=>{
-  const {sec,browserToken,...p}=r;
-  return p;
+  const {sec,browserToken,likeTokens,...p}=r;
+  return {...p,likeCount:Array.isArray(likeTokens)?likeTokens.length:0};
 };
 
 const allowed=new Set([
@@ -50,9 +42,10 @@ const allowed=new Set([
   '모델 좋음','모델 보통','모델 나쁨'
 ]);
 
-export async function onRequestGet({env}){
+export async function onRequestGet({request,env}){
   try{
-    return json({reviews:(await load(env)).map(strip)});
+    const token=String(new URL(request.url).searchParams.get('token')||'');
+    return json({reviews:(await load(env)).map(r=>strip(r,token))});
   }catch(e){
     return json({error:'KV를 읽지 못했어요. REVIEWS 바인딩을 확인해 주세요.'},500);
   }
@@ -173,6 +166,24 @@ export async function onRequestPost({request,env}){
     list=list.filter(x=>x.id!==b.id);
     await save(env,list);
     return json({ok:true});
+  }
+
+  // 다른 사람이 작성한 리뷰에 좋아요: 브라우저 토큰당 리뷰별 1회
+  if(b.action==='like'){
+    const r=list.find(x=>x.id===String(b.id||''));
+    if(!r) return json({error:'리뷰가 없어요.'},404);
+    const token=String(b.browserToken||'');
+    if(!token) return json({error:'브라우저 확인 정보가 없어요.'},400);
+    if(r.browserToken && r.browserToken===token){
+      return json({error:'내 리뷰에는 좋아요를 누를 수 없어요.'},403);
+    }
+    r.likeTokens=Array.isArray(r.likeTokens)?r.likeTokens:[];
+    if(r.likeTokens.includes(token)){
+      return json({error:'이 리뷰에는 이미 좋아요를 눌렀어요.'},409);
+    }
+    r.likeTokens.push(token);
+    await save(env,list);
+    return json({ok:true,likeCount:r.likeTokens.length});
   }
 
   // 리뷰 신고
