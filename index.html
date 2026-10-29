@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>익명 평점</title>
 <style>
 :root{--paper:#E7ECEC;--card:#F6F8F8;--ink:#14211F;--teal:#1F4E45;--amber:#C98A18;--muted:#77857F;--line:#C9D2D0}
-*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.7 system-ui,sans-serif}
+*{box-sizing:border-box}html{width:100%;max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}body{width:100%;max-width:100%;overflow-x:hidden;margin:0;background:var(--paper);color:var(--ink);font:15px/1.7 system-ui,sans-serif}
 .wrap{max-width:560px;margin:auto;padding:28px 20px 80px}h1,h2,h3{font-family:serif}h1{font-size:31px;margin:0}.sub,.muted{color:var(--muted);font-size:13px}
 .listhead{margin-top:24px;border-bottom:1.5px solid var(--ink);padding-bottom:8px;display:flex;justify-content:space-between}
 .row{width:100%;display:flex;align-items:flex-start;gap:16px;padding:16px 2px;background:none;border:0;border-bottom:1px solid var(--line);text-align:left;cursor:pointer;overflow:visible}.row>.score{flex:0 0 70px;width:70px}.row>span:nth-child(2){flex:1 1 auto;min-width:0;display:block;overflow:visible}
@@ -12,9 +12,15 @@ button{font:inherit;color:inherit;cursor:pointer}.btn{border:1px solid var(--ink
 .back{border:0;background:none;color:var(--muted);padding:8px 0}.detail{border-bottom:1.5px solid var(--ink);padding-bottom:16px}
 .avg{font:800 50px serif}.write{margin:18px 0}.review{background:var(--card);border-left:3px solid var(--teal);padding:14px 16px;margin:10px 0}
 .stars{color:var(--amber);font-size:18px;letter-spacing:2px}.tagwrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}.tag{font-size:11px;border:1px solid var(--line);padding:2px 7px;color:var(--muted)}
-.sheet{position:fixed;inset:0;background:#14211f73;display:none;align-items:flex-end;z-index:10;overscroll-behavior:contain}.sheet.on{display:flex}
+.sheet{position:fixed;left:0;right:0;width:100%;inset:0;background:#14211f73;display:none;align-items:flex-end;z-index:10;overscroll-behavior:contain}.sheet.on{display:flex}
 .box{background:var(--paper);width:100%;max-width:560px;margin:auto 0 0;padding:22px 20px calc(30px + env(safe-area-inset-bottom));max-height:85vh;max-height:85dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-label{display:block;color:var(--muted);font-size:13px;margin:12px 0 5px}textarea{display:block;width:100%;height:88px;min-height:72px;max-height:24dvh;resize:vertical;padding:10px;border:1px solid var(--line);font-family:inherit;font-size:16px;line-height:1.5;background:var(--card);border-radius:0;box-sizing:border-box}textarea:focus{outline:2px solid #83b8ed;outline-offset:1px}
+@media(max-width:600px){
+ .sheet{align-items:stretch}
+ .sheet .box{width:100%;max-width:none;height:100dvh;max-height:100dvh;margin:0;padding:calc(18px + env(safe-area-inset-top)) 20px calc(16px + env(safe-area-inset-bottom));overflow-y:auto}
+ .sheet .actions{position:sticky;bottom:calc(-1 * env(safe-area-inset-bottom));padding:12px 0 calc(8px + env(safe-area-inset-bottom));margin-top:18px;background:var(--paper)}
+ .sheet h3{margin-top:0}
+}
+label{display:block;color:var(--muted);font-size:13px;margin:12px 0 5px}textarea{display:block;width:100%;font-size:16px;height:88px;min-height:72px;max-height:24dvh;resize:vertical;padding:10px;border:1px solid var(--line);font-family:inherit;font-size:16px;line-height:1.5;background:var(--card);border-radius:0;box-sizing:border-box}textarea:focus{outline:2px solid #83b8ed;outline-offset:1px}
 .starpick{display:flex;gap:4px}.starpick button{border:0;background:none;font-size:30px;color:var(--line);padding:2px}.starpick button.on{color:var(--amber)}
 .groups{display:grid;gap:12px}.gtitle{font-size:12px;color:var(--muted)}.choices{display:flex;flex-wrap:wrap;gap:6px}.choice{background:var(--card);border:1px solid var(--line);padding:7px 9px;font-size:12px}.choice.on{background:var(--teal);color:white;border-color:var(--teal)}
 .actions{display:flex;gap:8px;margin-top:18px}.actions>*{flex:1}.empty{padding:30px;text-align:center;color:var(--muted)}
@@ -241,22 +247,22 @@ $('body').addEventListener('input',()=>$('len').textContent=$('body').value.leng
 const reviewBox=document.querySelector('#sheet .box');
 $('body').addEventListener('focus',()=>{
   $('body').style.height='76px';
-  if(reviewBox) reviewBox.style.maxHeight='55dvh';
+  if(reviewBox) reviewBox.style.maxHeight='';
   setTimeout(()=>{$('body').scrollIntoView({block:'center',behavior:'smooth'});},180);
 });
 $('body').addEventListener('blur',()=>{
   $('body').style.height='88px';
-  if(reviewBox) reviewBox.style.maxHeight='85dvh';
+  if(reviewBox) reviewBox.style.maxHeight='100dvh';
 });
 if(window.visualViewport){
   const fitReviewSheet=()=>{
     if(!$('sheet').classList.contains('on')||!reviewBox)return;
     const visibleHeight=window.visualViewport.height;
-    reviewBox.style.maxHeight=Math.max(180,Math.min(visibleHeight-12,window.innerHeight*.85))+'px';
+    reviewBox.style.maxHeight=Math.max(180,visibleHeight-12)+'px';
   };
   window.visualViewport.addEventListener('resize',fitReviewSheet);
   $('body').addEventListener('focus',()=>setTimeout(fitReviewSheet,220));
-  $('body').addEventListener('blur',()=>setTimeout(()=>{if(reviewBox)reviewBox.style.maxHeight='85dvh';},220));
+  $('body').addEventListener('blur',()=>setTimeout(()=>{if(reviewBox)reviewBox.style.maxHeight='100dvh';},220));
 }
 function getMine(){const id=localStorage.getItem('anonreview-id');return id?REVIEWS.find(r=>r.id===id&&r.pid===pid):null;}
 function openForm(){if(!pid)return;editId=null;rating=0;chosen=[];$('body').value='';$('len').textContent=0;$('stitle').textContent='리뷰 쓰기';$('save').textContent='등록하기';$('target').textContent=PLATFORMS.find(x=>x[0]===pid)[1]+'에 대한 익명 리뷰';renderStars();renderGroups();$('sheet').classList.add('on');}
