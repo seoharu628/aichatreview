@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>익명 평점</title>
 <style>
 :root{--paper:#E7ECEC;--card:#F6F8F8;--ink:#14211F;--teal:#1F4E45;--amber:#C98A18;--muted:#77857F;--line:#C9D2D0}
-*{box-sizing:border-box}html{width:100%;max-width:100%;overflow-x:hidden;-webkit-text-size-adjust:100%;text-size-adjust:100%}body{width:100%;max-width:100%;overflow-x:hidden;margin:0;background:var(--paper);color:var(--ink);font:15px/1.7 system-ui,sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.7 system-ui,sans-serif}
 .wrap{max-width:560px;margin:auto;padding:28px 20px 80px}h1,h2,h3{font-family:serif}h1{font-size:31px;margin:0}.sub,.muted{color:var(--muted);font-size:13px}
 .listhead{margin-top:24px;border-bottom:1.5px solid var(--ink);padding-bottom:8px;display:flex;justify-content:space-between}
 .row{width:100%;display:flex;align-items:flex-start;gap:16px;padding:16px 2px;background:none;border:0;border-bottom:1px solid var(--line);text-align:left;cursor:pointer;overflow:visible}.row>.score{flex:0 0 70px;width:70px}.row>span:nth-child(2){flex:1 1 auto;min-width:0;display:block;overflow:visible}
@@ -12,15 +12,9 @@ button{font:inherit;color:inherit;cursor:pointer}.btn{border:1px solid var(--ink
 .back{border:0;background:none;color:var(--muted);padding:8px 0}.detail{border-bottom:1.5px solid var(--ink);padding-bottom:16px}
 .avg{font:800 50px serif}.write{margin:18px 0}.review{background:var(--card);border-left:3px solid var(--teal);padding:14px 16px;margin:10px 0}
 .stars{color:var(--amber);font-size:18px;letter-spacing:2px}.tagwrap{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}.tag{font-size:11px;border:1px solid var(--line);padding:2px 7px;color:var(--muted)}
-.sheet{position:fixed;left:0;right:0;width:100%;inset:0;background:#14211f73;display:none;align-items:flex-end;z-index:10;overscroll-behavior:contain}.sheet.on{display:flex}
+.sheet{position:fixed;inset:0;background:#14211f73;display:none;align-items:flex-end;z-index:10;overscroll-behavior:contain}.sheet.on{display:flex}
 .box{background:var(--paper);width:100%;max-width:560px;margin:auto 0 0;padding:22px 20px calc(30px + env(safe-area-inset-bottom));max-height:85vh;max-height:85dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
-@media(max-width:600px){
- .sheet{align-items:stretch}
- .sheet .box{width:100%;max-width:none;height:100dvh;max-height:100dvh;margin:0;padding:calc(18px + env(safe-area-inset-top)) 20px calc(16px + env(safe-area-inset-bottom));overflow-y:auto}
- .sheet .actions{position:sticky;bottom:calc(-1 * env(safe-area-inset-bottom));padding:12px 0 calc(8px + env(safe-area-inset-bottom));margin-top:18px;background:var(--paper)}
- .sheet h3{margin-top:0}
-}
-label{display:block;color:var(--muted);font-size:13px;margin:12px 0 5px}textarea{display:block;width:100%;font-size:16px;height:88px;min-height:72px;max-height:24dvh;resize:vertical;padding:10px;border:1px solid var(--line);font-family:inherit;font-size:16px;line-height:1.5;background:var(--card);border-radius:0;box-sizing:border-box}textarea:focus{outline:2px solid #83b8ed;outline-offset:1px}
+label{display:block;color:var(--muted);font-size:13px;margin:12px 0 5px}textarea{display:block;width:100%;height:88px;min-height:72px;max-height:24dvh;resize:vertical;padding:10px;border:1px solid var(--line);font-family:inherit;font-size:16px;line-height:1.5;background:var(--card);border-radius:0;box-sizing:border-box}textarea:focus{outline:2px solid #83b8ed;outline-offset:1px}
 .starpick{display:flex;gap:4px}.starpick button{border:0;background:none;font-size:30px;color:var(--line);padding:2px}.starpick button.on{color:var(--amber)}
 .groups{display:grid;gap:12px}.gtitle{font-size:12px;color:var(--muted)}.choices{display:flex;flex-wrap:wrap;gap:6px}.choice{background:var(--card);border:1px solid var(--line);padding:7px 9px;font-size:12px}.choice.on{background:var(--teal);color:white;border-color:var(--teal)}
 .actions{display:flex;gap:8px;margin-top:18px}.actions>*{flex:1}.empty{padding:30px;text-align:center;color:var(--muted)}
@@ -39,9 +33,10 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 5px}textarea
 .platform-card { min-width: 0; }
 </style>
 <style>
-#moreBtn{position:fixed;top:12px;right:14px;z-index:9999;border:0;background:transparent;font-size:24px;letter-spacing:2px;line-height:1;padding:4px 8px;cursor:pointer}
-.admin-modal[hidden]{display:none!important}.admin-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:18px}
-.admin-window{position:relative;width:min(560px,100%);max-height:85vh;overflow:auto;background:var(--bg,#fff);border:1px solid var(--line,#ddd);padding:24px;border-radius:14px}
+#moreBtn{position:fixed;top:auto;right:18px;bottom:22px;z-index:9999;border:1px solid #e2e8f0;background:#fff;color:#1f2937;font-size:23px;letter-spacing:2px;line-height:1;padding:12px 16px;border-radius:18px;box-shadow:0 4px 16px rgba(15,40,80,.12);cursor:pointer;env(safe-area-inset-bottom)}
+.admin-modal[hidden]{display:none!important}.admin-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9998;display:flex;align-items:center;justify-content:center;padding:18px;overscroll-behavior:none;touch-action:none}
+.admin-window{position:relative;width:min(560px,100%);max-height:85vh;max-height:85dvh;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;background:var(--bg,#fff);border:1px solid var(--line,#ddd);padding:24px;border-radius:14px}
+body.admin-modal-open{position:fixed;width:100%;overflow:hidden}
 .admin-close{position:absolute;right:12px;top:8px;border:0;background:transparent;font-size:28px;cursor:pointer}
 .admin-window input{width:100%;padding:10px;margin:12px 0;box-sizing:border-box}
 #platforms .row{min-width:0}
@@ -138,8 +133,165 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 5px}textarea
 .platform-tab.active{background:var(--teal);border-color:var(--teal);color:#fff}
 @media(max-width:420px){.listhead-right{width:100%;justify-content:space-between}.platform-tabs{flex:1}.platform-tab{flex:1}}
 </style>
+
+<style>
+/* White + blue + black visual refresh; keeps existing behavior and mobile editor fixes. */
+:root{
+  --paper:#FFFFFF; --card:#F5F9FF; --ink:#111827; --teal:#2563EB;
+  --amber:#E5A000; --muted:#667085; --line:#D8E2F0;
+  --bg:#FFFFFF;
+}
+html{background:#fff; color-scheme:light;}
+body{background:#fff;color:#111827;font-family:-apple-system,BlinkMacSystemFont,"Noto Sans KR",system-ui,sans-serif;line-height:1.65;}
+.wrap{max-width:680px;padding:34px 22px calc(88px + env(safe-area-inset-bottom));}
+h1,h2,h3{font-family:inherit;letter-spacing:-.045em;color:#101828;}
+h1{font-size:clamp(32px,7vw,42px);font-weight:850;letter-spacing:-.06em;}
+.sub{color:#667085;font-size:14px;margin-top:10px;}
+.listhead{margin-top:34px;padding:0 0 13px;border-bottom:2px solid #111827;font-size:17px;color:#111827;}
+.listhead>b{font-weight:800;}
+.row{padding:18px 12px;gap:17px;border-bottom:1px solid #E5EAF2;border-radius:12px;transition:background .15s ease;}
+.row:active{background:#F3F7FF;}
+.score{color:#2563EB;font-family:inherit;font-size:27px;font-weight:800;}
+.name{font-size:16px;font-weight:750;color:#111827;}
+.meta,.muted{color:#667085;}
+.btn{border:1px solid #CBD7E8;background:#fff;color:#111827;border-radius:10px;padding:9px 13px;font-weight:650;transition:background .15s,border-color .15s,transform .15s;}
+.btn:active{transform:scale(.98);}
+.solid{background:#2563EB;border-color:#2563EB;color:#fff;box-shadow:0 3px 9px #2563eb22;}
+.solid:active{background:#1D4ED8;}
+.back{color:#2563EB;font-weight:700;padding:10px 0;}
+.detail{border-bottom:2px solid #E5EAF2;padding:8px 0 20px;}
+.detail h2{font-size:25px;font-weight:800;margin:8px 0;}
+.avg{font-family:inherit;color:#2563EB;font-size:52px;font-weight:850;letter-spacing:-.05em;}
+.write{margin:22px 0;}
+.review{background:#F7FAFF;border:1px solid #E1EAF7;border-left:4px solid #2563EB;border-radius:14px;padding:16px;margin:12px 0;box-shadow:0 3px 12px #0f172a08;}
+.stars{color:#E5A000;}
+.tag{background:#fff;border:1px solid #D8E2F0;border-radius:999px;color:#475467;padding:4px 9px;}
+.stats{gap:8px;}
+.stat{background:#F5F9FF;border:1px solid #DCE7F5;border-radius:9px;color:#344054;padding:8px 11px;}
+.platform-tabs{gap:8px;}
+.platform-tab{border:1px solid #D5DFED;background:#fff;color:#475467;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:700;}
+.platform-tab.active{background:#2563EB;border-color:#2563EB;color:#fff;box-shadow:0 3px 9px #2563eb22;}
+.sheet{background:rgba(15,23,42,.48);backdrop-filter:blur(3px);}
+.box{background:#fff;border-radius:22px 22px 0 0;border:1px solid #E5EAF2;box-shadow:0 -8px 32px #0f172a18;padding:22px 20px calc(28px + env(safe-area-inset-bottom));}
+.box h3{font-size:22px;font-weight:800;}
+label{color:#344054;font-weight:700;}
+textarea{background:#fff;border:1px solid #CBD7E8;border-radius:12px;color:#111827;padding:12px;}
+textarea:focus{outline:3px solid #BFDBFE;border-color:#2563EB;}
+.starpick button{color:#CBD5E1;}
+.starpick button.on{color:#E5A000;}
+.choice{background:#fff;border:1px solid #D8E2F0;border-radius:9px;color:#344054;padding:8px 11px;}
+.choice.on{background:#2563EB;border-color:#2563EB;color:#fff;}
+.actions{gap:10px;}
+.empty{color:#667085;background:#F7FAFF;border:1px dashed #CBD7E8;border-radius:12px;}
+.review-actions{flex-wrap:wrap;}
+.review-actions button[aria-pressed="true"]{background:#EFF6FF;border-color:#93C5FD;color:#1D4ED8;}
+.danger{border-color:#FECACA!important;color:#B42318!important;background:#FFF!important;}
+.admin-window{background:#fff;border-color:#D8E2F0;border-radius:18px;color:#111827;}
+.admin-item{background:#F7FAFF;border-left-color:#2563EB;border-radius:10px;}
+#moreBtn{color:#111827;background:#fff;border-radius:999px;padding:6px 10px;box-shadow:0 2px 12px #0f172a12;}
+@media(min-width:600px){.wrap{padding-top:48px}.row{padding:20px 14px}.review{padding:19px;}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{transition:none!important;scroll-behavior:auto!important;}}
+</style>
+
+
+<style id="fresh-white-blue-design">
+:root{--paper:#f4f8ff;--card:#ffffff;--ink:#111827;--teal:#2563eb;--amber:#d69b18;--muted:#64748b;--line:#dbe6f5}
+body{background:linear-gradient(180deg,#eaf2ff 0,#f7faff 230px,#f4f8ff 100%);color:#111827;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:680px;padding:34px 18px 90px}
+#list{background:#fff;border:1px solid #e2eaf6;border-radius:24px;padding:25px 20px 22px;box-shadow:0 12px 34px rgba(30,64,120,.07)}
+h1{font-family:inherit;font-size:29px;font-weight:850;letter-spacing:-1.2px;color:#111827}
+.sub{font-size:13px;color:#64748b;margin-top:5px}
+.listhead{margin-top:27px;border:0;padding:12px 14px;background:#eff5ff;border-radius:12px;color:#1e3a8a}
+#platforms{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:12px}
+#platforms .row{border:1px solid #e4ebf5!important;border-radius:14px!important;background:#fff!important;padding:14px 12px!important;align-items:center!important;gap:9px!important;min-height:76px;box-shadow:0 2px 7px rgba(15,40,80,.025);transition:border-color .15s,transform .15s}
+#platforms .row:active{transform:scale(.985)}
+#platforms .row .score{font-family:inherit;font-size:22px!important;font-weight:800;color:#2563eb;text-align:left!important;flex:0 0 48px!important;width:48px!important;min-width:48px!important}
+#platforms .row .name{font-size:14px!important;font-weight:750!important;line-height:1.35!important;color:#111827}
+#platforms .row .meta{font-size:11px!important;color:#8290a5!important;margin-top:3px}
+#detail{background:#fff;border:1px solid #e2eaf6;border-radius:24px;padding:20px 18px 24px;box-shadow:0 12px 34px rgba(30,64,120,.07)}
+.back{color:#2563eb;font-weight:700;padding:4px 0 15px}
+.detail{border:0;border-radius:17px;background:#eff5ff;padding:19px;margin-top:2px}
+#dname{font-family:inherit;font-size:23px;font-weight:800;margin:0 0 2px;color:#111827}
+.avg{font-family:inherit;font-size:48px;font-weight:850;color:#2563eb;letter-spacing:-2px}
+#dcnt{color:#64748b}
+.btn{border:1px solid #cbdcf5;border-radius:11px;background:#fff;color:#1e40af;font-weight:650;padding:10px 14px}
+.solid{background:#2563eb!important;color:#fff!important;border-color:#2563eb!important;border-radius:12px!important;box-shadow:0 5px 12px rgba(37,99,235,.17)}
+.write{margin:17px 0 20px}
+.review{background:#fff;border:1px solid #e3ebf6;border-left:4px solid #3b82f6;border-radius:15px;padding:16px;margin:11px 0;box-shadow:0 3px 12px rgba(15,40,80,.035)}
+.stars{color:#d69b18}.tag{background:#f3f7fd;border:1px solid #e2eaf6;border-radius:99px;color:#52647d;padding:3px 9px}
+.stats{gap:7px}.stat{background:#f1f6ff;border:1px solid #e0eaff;border-radius:10px;color:#24477f}
+.sheet{background:rgba(15,32,60,.48);backdrop-filter:blur(4px)}
+.box{background:#fff;border-radius:22px 22px 0 0;border:1px solid #e2eaf6;padding:22px 18px calc(26px + env(safe-area-inset-bottom))}
+.box h3{font-family:inherit;font-size:21px;font-weight:800;color:#111827}
+textarea{border-radius:12px!important;border-color:#d7e3f4!important;background:#f8fbff!important}
+.choice{border-radius:9px;background:#f8fbff;border-color:#dce7f6;color:#26364d}
+.choice.on{background:#2563eb;border-color:#2563eb}
+.starpick button.on{color:#d69b18}
+.admin-window{border-radius:20px;background:#fff}
+#moreBtn{color:#1f2937;background:#fff;border:1px solid #e2eaf6;border-radius:12px;box-shadow:0 4px 12px rgba(15,40,80,.08)}
+@media(max-width:390px){.wrap{padding:22px 12px 70px}#list{padding:20px 13px}#platforms{gap:7px}#platforms .row{padding:12px 9px!important;gap:6px!important}#platforms .row .score{flex-basis:42px!important;width:42px!important;min-width:42px!important;font-size:20px!important}}
+</style>
+
+
+<style id="reference-inspired-layout">
+:root{--paper:#fff;--card:#f2f2f2;--ink:#111;--muted:#686868;--line:#e5e5e5;--teal:#2563eb}
+body{background:#fff;color:#111;font-family:Arial,"Noto Sans KR",system-ui,sans-serif}
+.wrap{max-width:1020px;padding:28px 22px 80px}
+#list{background:#fff;border:2px solid #e5e5e5;border-radius:44px;padding:34px 30px 30px;box-shadow:none}
+.hero-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}.eyebrow{font-size:clamp(23px,4vw,38px);font-weight:850;letter-spacing:-1.3px}.community-pill{background:#ededed;border-radius:99px;padding:7px 19px;font-size:clamp(14px,2.5vw,23px);letter-spacing:.3px}
+#list h1{font-size:clamp(38px,7vw,66px);line-height:1.27;letter-spacing:-2.8px;margin:0;font-weight:900;color:#111}.hero-copy{font-size:clamp(17px,3vw,29px);line-height:1.55;color:#707070;margin:14px 0 28px;letter-spacing:-.7px}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:30px}.summary-card{min-height:145px;background:#f2f2f2;border-radius:30px;padding:25px 28px;display:flex;flex-direction:column;justify-content:space-between}.summary-card span{font-size:clamp(17px,2.8vw,27px);color:#666}.summary-card strong{font-size:clamp(28px,4vw,40px);line-height:1;font-weight:850;letter-spacing:1px}
+.popular-card{background:#f2f2f2;border-radius:30px;padding:27px 28px;margin-bottom:36px}.popular-title{font-size:clamp(21px,3.5vw,34px);font-weight:850}.popular-card>p{font-size:clamp(15px,2.5vw,24px);color:#777;margin:12px 0 12px}.popular-row{width:100%;display:flex;align-items:center;gap:12px;border:0;background:transparent;text-align:left;padding:10px 0;font-size:clamp(18px,3vw,27px);color:#111}.popular-row b{margin-left:auto;font-size:.82em;color:#2563eb}.popular-arrow{font-size:36px;color:#666;line-height:1}.popular-empty{font-size:16px;color:#777;padding:8px 0}
+.browse-title{font-size:clamp(26px,4vw,38px);font-weight:900;letter-spacing:-1.5px;margin:0 0 17px}.search-row{display:flex;align-items:center;gap:14px}.search-box{flex:1;min-width:0;background:#f2f2f2;border-radius:22px;min-height:96px;padding:14px 20px;display:flex;flex-direction:column;justify-content:center;gap:4px;color:#111}.search-box span{font-size:29px;line-height:1}.search-box input{border:0;outline:0;background:transparent;font:inherit;font-size:clamp(16px,2.5vw,24px);width:100%;color:#111}.search-box input::placeholder{color:#777}.filter-button{width:76px;height:76px;border:0;border-radius:22px;background:#f2f2f2;font-size:34px;color:#111}
+.sort-tabs{display:flex;flex-wrap:wrap;gap:9px;margin:18px 0 26px}.sort-chip{border:0;border-radius:99px;background:#ededed;color:#222;padding:8px 18px;font-size:clamp(14px,2vw,20px);font-weight:650}.sort-chip.active{background:#dceeff;color:#15518e}
+.listhead{background:transparent;border:0;border-bottom:1px solid #e5e5e5;border-radius:0;padding:0 0 13px;margin:0 0 12px;color:#111}.listhead>b{font-size:21px}.listhead-right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}.platform-tabs{display:flex;gap:6px}.platform-tab{border:0;border-radius:99px;background:#eee;padding:7px 12px;font-size:13px;color:#333}.platform-tab.active{background:#dceeff;color:#15518e;font-weight:750}
+#platforms{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.row{border:1px solid #e7e7e7!important;border-radius:18px!important;background:#fff!important;padding:16px!important;min-height:82px;align-items:center!important;box-shadow:none!important}.row .score{font:800 23px system-ui!important;color:#2563eb!important;flex:0 0 52px!important;width:52px!important;min-width:52px!important;text-align:left!important}.row .name{font-size:16px!important;color:#111!important;font-weight:750!important}.row .meta{color:#777!important}.platform-arrow{margin-left:auto;font-size:26px;color:#777}
+#detail{border:1px solid #e5e5e5;border-radius:28px;padding:24px;background:#fff;box-shadow:none}.detail{background:#f2f2f2}.btn.solid{background:#2563eb!important;border-color:#2563eb!important}
+@media(max-width:600px){.wrap{padding:14px 12px 60px}#list{border-radius:30px;padding:22px 17px}.hero-top{margin-bottom:18px}.summary-grid{gap:10px;margin-bottom:20px}.summary-card{min-height:110px;padding:18px 16px;border-radius:22px}.popular-card{padding:20px 17px;border-radius:22px;margin-bottom:27px}.search-box{min-height:80px;border-radius:17px;padding:10px 15px}.filter-button{width:62px;height:62px;border-radius:17px}.sort-tabs{gap:6px;margin:14px 0 22px}.sort-chip{padding:7px 13px}.listhead{align-items:flex-start;gap:10px;flex-direction:column}.listhead-right{justify-content:flex-start}.platform-tabs{flex-wrap:wrap}#platforms{grid-template-columns:1fr 1fr;gap:7px}.row{padding:12px 9px!important;min-height:72px}.row .score{flex-basis:40px!important;width:40px!important;min-width:40px!important;font-size:19px!important}.row .name{font-size:14px!important}.row .meta{font-size:10px!important}}
+@media(max-width:360px){#platforms{grid-template-columns:1fr}.community-pill{padding:6px 12px}}
+@media(max-width:600px){#moreBtn{right:16px;bottom:calc(16px + env(safe-area-inset-bottom));}}
+</style>
+
+<style>
+/* 관리자 로그인 버튼: COMMUNITY가 있던 헤더 오른쪽 자리 */
+#moreBtn{position:static;top:auto;right:auto;bottom:auto;z-index:2;flex:0 0 auto;width:112px;height:76px;padding:0;border:1px solid #e2e8f0;background:#fff;color:#1f2937;font-size:24px;font-weight:800;letter-spacing:5px;line-height:1;border-radius:22px;box-shadow:0 3px 14px rgba(15,40,80,.08);cursor:pointer;display:flex;align-items:center;justify-content:center;}
+@media(max-width:600px){#moreBtn{width:76px;height:56px;border-radius:17px;font-size:21px;}}
+
+
+</style>
+
+<style>
+.hero-top{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:16px!important;width:100%!important}
+.hero-top .eyebrow{display:block!important;min-width:0!important}
+.hero-top #moreBtn{position:static!important;inset:auto!important;flex:0 0 76px!important;width:76px!important;height:56px!important;padding:0!important;display:flex!important;align-items:center!important;justify-content:center!important;z-index:2!important;border-radius:17px!important;font-size:21px!important;letter-spacing:3px!important}
+@media(min-width:601px){.hero-top #moreBtn{flex-basis:90px!important;width:90px!important;height:64px!important;font-size:23px!important}}
+</style>
+
+<style>
+/* 점 세 개 로그인 버튼: 테두리와 배경 상자 제거 */
+#moreBtn, .hero-top #moreBtn{
+  background:transparent !important;
+  border:0 !important;
+  box-shadow:none !important;
+  border-radius:0 !important;
+  width:auto !important;
+  height:auto !important;
+  min-width:0 !important;
+  min-height:0 !important;
+  padding:8px 4px !important;
+  color:#1f2937 !important;
+  font-size:28px !important;
+  font-weight:800 !important;
+  letter-spacing:4px !important;
+  line-height:1 !important;
+  flex:0 0 auto !important;
+  appearance:none !important;
+  -webkit-appearance:none !important;
+}
+#moreBtn:focus, #moreBtn:focus-visible{outline:2px solid #93c5fd;outline-offset:4px;}
+</style>
+
 </head><body>
-<button id="moreBtn" aria-label="관리자 메뉴">•••</button>
 <div id="adminModal" class="admin-modal" hidden>
   <div class="admin-window">
     <button id="adminClose" class="admin-close">×</button>
@@ -153,16 +305,52 @@ label{display:block;color:var(--muted);font-size:13px;margin:12px 0 5px}textarea
     </div>
   </div>
 </div><main class="wrap">
-<section id="list"><h1>익명 평점</h1><p class="sub">캐릭터 챗 플랫폼, 익명으로 남기는 별점과 솔직한 후기</p>
-<div class="listhead"><b>플랫폼</b><div class="listhead-right"><div class="platform-tabs" role="group" aria-label="플랫폼 종류"><button type="button" class="platform-tab active" data-category="main">전체 플랫폼</button><button type="button" class="platform-tab" data-category="new">신규 플랫폼</button></div><span id="count"></span></div></div><div id="platforms"></div></section>
+<section id="list">
+  <div class="hero-top"><span class="eyebrow">AI CHAT REVIEW</span><button id="moreBtn" aria-label="관리자 로그인" title="관리자 로그인">•••</button></div>
+  <h1>익명 평점</h1>
+  <p class="hero-copy">캐릭터 챗 플랫폼, 익명으로 남기는 별점과 솔직한 후기</p>
+  <div class="summary-grid"><div class="summary-card"><span>등록된 플랫폼</span><strong id="platformTotal">--</strong></div><div class="summary-card"><span>누적 리뷰</span><strong id="reviewTotal">--</strong></div></div>
+  <section class="popular-card" id="usageCard"><button type="button" class="usage-open" id="usageOpen"><span class="popular-title">어떤 플랫폼을 주로 사용하시나요?</span><span class="usage-chevron">›</span></button><p>사용 중인 플랫폼을 선택하면 이용자 선택 수에 따라 TOP 3 순위에 반영됩니다.</p><div id="popularList"><div class="popular-empty">아직 참여한 이용자가 없어요. 첫 번째로 선택해 주세요!</div></div></section>
+  <div class="browse-title">플랫폼 둘러보기</div>
+  <div class="search-row"><label class="search-box"><span>⌕</span><input id="platformSearch" type="search" placeholder="플랫폼 검색" autocomplete="off"></label><button id="filterBtn" class="filter-button" type="button" aria-label="정렬 방식">☷</button></div>
+  <div class="sort-tabs" role="group" aria-label="정렬"><button class="sort-chip active" data-sort="all">전체</button><button class="sort-chip" data-sort="popular">인기순</button><button class="sort-chip" data-sort="rating">평점순</button><button class="sort-chip" data-sort="reviews">리뷰순</button><button class="sort-chip" data-sort="latest">최신순</button></div>
+  <div class="listhead"><b>플랫폼 목록</b><div class="listhead-right"><div class="platform-tabs" role="group" aria-label="플랫폼 종류"><button type="button" class="platform-tab active" data-category="main">전체 플랫폼</button><button type="button" class="platform-tab" data-category="new">신규 플랫폼</button></div><span id="count"></span></div></div><div id="platforms"></div>
+</section>
 <section id="detail" hidden><button class="back" id="back">← 목록</button><div class="detail"><h2 id="dname"></h2><div><span class="avg" id="avg">–</span></div><div class="muted" id="dcnt"></div></div>
 <div class="write" id="writeArea"><button class="btn solid" id="write">리뷰 쓰기</button></div><div id="starStats"></div><div id="reviews"></div></section>
 </main>
+<div class="usage-modal" id="usageModal" hidden>
+  <div class="usage-window" role="dialog" aria-modal="true" aria-labelledby="usageTitle">
+    <button type="button" class="usage-close" id="usageClose" aria-label="닫기">×</button>
+    <h2 id="usageTitle">어떤 플랫폼을 사용하시나요?</h2>
+    <p class="usage-help">주 플랫폼은 1~2개, 서브 플랫폼은 원하는 만큼 선택할 수 있어요.</p>
+    <div class="usage-section-title">주로 사용하는 플랫폼 (최대 2개)</div>
+    <div id="mainUsageChoices" class="usage-choices"></div>
+    <div class="usage-section-title">서브 플랫폼 (여러 개 선택 가능)</div>
+    <div id="subUsageChoices" class="usage-choices"></div>
+    <div class="usage-section-title">목록에 없는 플랫폼 추가</div>
+    <div class="usage-add-row"><input id="usageCustomInput" type="text" maxlength="30" placeholder="플랫폼 이름 입력"><button type="button" class="btn" id="usageAddCustom">추가</button></div>
+    <div id="usageSelected" class="usage-selected"></div>
+    <div class="usage-actions"><button type="button" class="btn" id="usageCancel">취소</button><button type="button" class="btn solid" id="usageSave">선택 완료</button></div>
+    <p class="usage-note">선택은 익명으로 집계되며, 다시 선택하면 이전 선택이 업데이트됩니다.</p>
+  </div>
+</div>
 <div class="sheet" id="sheet"><div class="box"><h3 id="stitle">리뷰 쓰기</h3><p class="muted" id="target"></p>
 <label>별점</label><div class="starpick" id="stars"></div>
 <label>후기 (선택, 0~30자)</label><textarea id="body" maxlength="30"></textarea><div class="muted" style="text-align:right"><span id="len">0</span> / 30</div>
 <label>특징 선택 · 최소 1개</label><div class="groups" id="groups"></div>
 <div class="actions"><button class="btn" id="cancel">취소</button><button class="btn solid" id="save">등록하기</button></div></div></div>
+
+<style>
+.usage-open{display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:0;border:0;background:transparent;text-align:left;color:inherit}
+.usage-chevron{font-size:38px;color:#777;line-height:1;font-weight:300}
+.usage-modal[hidden]{display:none!important}.usage-modal{position:fixed;inset:0;z-index:10000;background:rgba(15,23,42,.48);display:flex;align-items:center;justify-content:center;padding:16px;overscroll-behavior:contain}
+.usage-window{position:relative;width:min(560px,100%);max-height:88vh;max-height:88dvh;overflow:auto;background:#fff;color:#111827;border-radius:26px;padding:28px 22px calc(22px + env(safe-area-inset-bottom));box-shadow:0 18px 60px #0002;-webkit-overflow-scrolling:touch}
+.usage-window h2{font-size:25px;line-height:1.3;margin:0 38px 10px 0}.usage-help,.usage-note{color:#777;font-size:14px;line-height:1.6}.usage-close{position:absolute;right:15px;top:10px;border:0;background:transparent;font-size:32px;color:#555;padding:2px 8px}
+.usage-section-title{font-size:14px;font-weight:800;margin:22px 0 10px}.usage-choices{display:flex;flex-wrap:wrap;gap:8px}.usage-chip{border:1px solid #ddd;background:#f5f5f5;color:#222;border-radius:999px;padding:9px 13px;font-size:14px}.usage-chip.selected{background:#dceeff;border-color:#9bcafa;color:#14549a;font-weight:750}
+.usage-add-row{display:flex;gap:8px}.usage-add-row input{min-width:0;flex:1;border:1px solid #ddd;border-radius:12px;padding:12px;font:inherit}.usage-selected{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}.usage-selected:empty{display:none}.usage-selected span{background:#eaf3ff;color:#174b83;border-radius:999px;padding:6px 10px;font-size:13px}.usage-actions{display:flex;gap:9px;margin-top:22px}.usage-actions>*{flex:1}.usage-note{margin:12px 0 0;font-size:12px}.popular-row b{color:#2563eb}.popular-empty{padding:12px 0}.usage-rank-title{font-weight:800;margin:14px 0 6px}.usage-rank-title:first-child{margin-top:8px}.usage-chip:disabled{opacity:.35;cursor:not-allowed}
+@media(max-width:600px){.usage-window{padding:25px 17px calc(18px + env(safe-area-inset-bottom));border-radius:22px}.usage-window h2{font-size:22px}}
+</style>
 <script>const API='/api/reviews';
 const PLATFORMS=[
 ["p-zeta", "제타", "main"], ["p-bloom", "블룸", "main"], ["p-wif", "위프", "main"],
@@ -191,7 +379,7 @@ const TAGS=[
 ['모델',['모델 좋음','모델 보통','모델 나쁨']]
 ];
 
-let REVIEWS=[],pid='',rating=0,chosen=[],editId=null,activeCategory='main',adminPw=localStorage.getItem('anonreview-admin-pw')||'';
+let REVIEWS=[],USAGE_MAIN_COUNTS=[],USAGE_SUB_COUNTS=[],MY_USAGE={main:[],sub:[]},usageDraft={main:[],sub:[]},pid='',rating=0,chosen=[],editId=null,activeCategory='main',searchTerm='',sortMode='all',adminPw=localStorage.getItem('anonreview-admin-pw')||'';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const sortedPlatforms=()=>[...PLATFORMS].sort((a,b)=>a[1].localeCompare(b[1],'ko'));
@@ -200,30 +388,57 @@ function getBrowserToken(){
   if(!token){token=crypto.randomUUID();localStorage.setItem('anonreview-browser-token',token);}
   return token;
 }
-async function load(){const token=encodeURIComponent(getBrowserToken());const r=await fetch(API+'?token='+token+'&t='+Date.now());const d=await r.json();if(!r.ok)throw Error(d.error||'불러오기 실패');REVIEWS=d.reviews||[];renderList();if(pid)renderDetail();}
+async function load(){const token=encodeURIComponent(getBrowserToken());const r=await fetch(API+'?token='+token+'&t='+Date.now());const d=await r.json();if(!r.ok)throw Error(d.error||'불러오기 실패');REVIEWS=d.reviews||[];USAGE_MAIN_COUNTS=d.usageMain||[];USAGE_SUB_COUNTS=d.usageSub||[];MY_USAGE=d.myUsage||{main:[],sub:[]};renderList();if(pid)renderDetail();}
 function renderList(){
-  const visiblePlatforms=sortedPlatforms().filter(p=>(p[2]||'main')===activeCategory);
-  $('platforms').innerHTML=visiblePlatforms.map(p=>{
-    const rs=REVIEWS.filter(r=>r.pid===p[0]);
-    const a=rs.length?(rs.reduce((x,r)=>x+r.rating,0)/rs.length).toFixed(1):'–';
-    return `<button type="button" class="row" data-p="${esc(p[0])}">
-      <span class="score">${a}</span>
-      <span class="platform-info">
-        <span class="name">${esc(p[1])}</span>
-        <span class="meta">리뷰 ${rs.length}개</span>
-      </span>
-    </button>`;
-  }).join('');
-  $('count').textContent=visiblePlatforms.length+'곳 · 리뷰 '+REVIEWS.length+'개';
-  document.querySelectorAll('#platforms .row').forEach(b=>{
-    b.onclick=()=>open(b.dataset.p);
-  });
-  document.querySelectorAll('[data-category]').forEach(b=>{
-    b.classList.toggle('active',b.dataset.category===activeCategory);
-    b.setAttribute('aria-pressed',String(b.dataset.category===activeCategory));
-    b.onclick=()=>{activeCategory=b.dataset.category;renderList();};
-  });
+  const all=sortedPlatforms().filter(p=>(p[2]||'main')===activeCategory);
+  const metrics=p=>{const rs=REVIEWS.filter(r=>r.pid===p[0]);return {rs,n:rs.length,a:rs.length?rs.reduce((x,r)=>x+r.rating,0)/rs.length:0,last:rs.reduce((m,r)=>Math.max(m,Number(r.ts)||0),0)}};
+  const ranked=all.map(p=>({p,...metrics(p)}));
+  const nameFor=id=>PLATFORMS.find(p=>p[0]===id)?.[1]||id.replace(/^custom:/,'');
+  const topRows=(arr)=>[...arr].sort((a,b)=>b.count-a.count||nameFor(a.id).localeCompare(nameFor(b.id),'ko')).slice(0,3);
+  const mainTop=topRows(USAGE_MAIN_COUNTS), subTop=topRows(USAGE_SUB_COUNTS);
+  const rankHtml=(title,rows)=>`<div class="usage-rank-title">${title}</div>`+(rows.length&&rows[0].count?rows.map((x,i)=>`<div class="popular-row"><span>${i+1}위 · ${esc(nameFor(x.id))}</span><b>${x.count}명</b></div>`).join(''):'<div class="popular-empty">아직 집계된 플랫폼이 없어요.</div>');
+  $('platformTotal').textContent=PLATFORMS.length;
+  $('reviewTotal').textContent=REVIEWS.length;
+  $('popularList').innerHTML=rankHtml('주 플랫폼 TOP 3',mainTop)+rankHtml('서브 플랫폼 TOP 3',subTop);
+  $('usageOpen').onclick=openUsageModal;
+  let visible=ranked.filter(x=>x.p[1].toLowerCase().includes(searchTerm));
+  if(sortMode==='popular'||sortMode==='rating')visible.sort((a,b)=>b.a-a.a||b.n-a.n);
+  else if(sortMode==='reviews')visible.sort((a,b)=>b.n-a.n||b.a-a.a);
+  else if(sortMode==='latest')visible.sort((a,b)=>b.last-a.last);
+  $('platforms').innerHTML=visible.map(x=>`<button type="button" class="row" data-p="${esc(x.p[0])}"><span class="score">${x.n?x.a.toFixed(1):'–'}</span><span class="platform-info"><span class="name">${esc(x.p[1])}</span><span class="meta">리뷰 ${x.n}개</span></span><span class="platform-arrow">›</span></button>`).join('')||'<div class="empty">검색 결과가 없어요.</div>';
+  $('count').textContent=visible.length+'곳 · 리뷰 '+REVIEWS.length+'개';
+  document.querySelectorAll('#platforms .row').forEach(b=>b.onclick=()=>open(b.dataset.p));
+  document.querySelectorAll('[data-category]').forEach(b=>{b.classList.toggle('active',b.dataset.category===activeCategory);b.setAttribute('aria-pressed',String(b.dataset.category===activeCategory));b.onclick=()=>{activeCategory=b.dataset.category;renderList();};});
+  document.querySelectorAll('[data-sort]').forEach(b=>{b.classList.toggle('active',b.dataset.sort===sortMode);b.onclick=()=>{sortMode=b.dataset.sort;renderList();};});
 }
+
+function openUsageModal(){usageDraft={main:[...(MY_USAGE.main||[])],sub:[...(MY_USAGE.sub||[])]};renderUsageChoices();$('usageModal').hidden=false;document.body.style.overflow='hidden';}
+function closeUsageModal(){ $('usageModal').hidden=true;document.body.style.overflow=''; }
+function renderUsageChoices(){
+ const renderGroup=(key,target)=>{
+  const selected=new Set(usageDraft[key].map(x=>x.id));
+  $(target).innerHTML=sortedPlatforms().map(p=>`<button type="button" class="usage-chip ${selected.has(p[0])?'selected':''}" data-usage-type="${key}" data-usage-id="${esc(p[0])}" data-usage-name="${esc(p[1])}">${esc(p[1])}</button>`).join('');
+ };
+ renderGroup('main','mainUsageChoices');renderGroup('sub','subUsageChoices');
+ document.querySelectorAll('[data-usage-id]').forEach(b=>b.onclick=()=>{
+  const key=b.dataset.usageType,id=b.dataset.usageId,name=b.dataset.usageName;
+  const i=usageDraft[key].findIndex(x=>x.id===id);
+  if(i>=0)usageDraft[key].splice(i,1);
+  else if(key==='main'&&usageDraft.main.length>=2){alert('주 플랫폼은 최대 2개까지 선택할 수 있어요.');return;}
+  else {usageDraft[key].push({id,name});}
+  // 한 플랫폼을 주/서브 양쪽에 중복으로 넣지 않도록 반대쪽에서 제거
+  const other=key==='main'?'sub':'main';usageDraft[other]=usageDraft[other].filter(x=>x.id!==id);
+  renderUsageChoices();renderUsageSelected();
+ });
+ renderUsageSelected();
+}
+function renderUsageSelected(){ $('usageSelected').innerHTML='<div style="width:100%;font-weight:700">주 플랫폼: '+(usageDraft.main.map(x=>esc(x.name)).join(', ')||'미선택')+'</div><div style="width:100%;font-weight:700">서브 플랫폼: '+(usageDraft.sub.map(x=>esc(x.name)).join(', ')||'미선택')+'</div>'; }
+$('usageAddCustom').onclick=()=>{const name=$('usageCustomInput').value.trim().replace(/\s+/g,' ');if(!name)return;const id='custom:'+name.toLocaleLowerCase('ko-KR');if(!usageDraft.sub.some(x=>x.id===id)&&!usageDraft.main.some(x=>x.id===id))usageDraft.sub.push({id,name});$('usageCustomInput').value='';renderUsageChoices();};
+$('usageCustomInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('usageAddCustom').click();}});
+$('usageClose').onclick=closeUsageModal;$('usageCancel').onclick=closeUsageModal;$('usageModal').addEventListener('click',e=>{if(e.target===$('usageModal'))closeUsageModal();});
+$('usageSave').onclick=async()=>{if(!usageDraft.main.length&&!usageDraft.sub.length)return alert('주 플랫폼 또는 서브 플랫폼을 하나 이상 선택해 주세요.');if(usageDraft.main.length>2)return alert('주 플랫폼은 최대 2개까지 선택할 수 있어요.');const b=$('usageSave');b.disabled=true;b.textContent='저장 중…';try{const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'saveUsage',token:getBrowserToken(),main:usageDraft.main,sub:usageDraft.sub})});const d=await res.json();if(!res.ok)throw Error(d.error||'저장하지 못했어요.');MY_USAGE=d.myUsage||usageDraft;USAGE_MAIN_COUNTS=d.usageMain||USAGE_MAIN_COUNTS;USAGE_SUB_COUNTS=d.usageSub||USAGE_SUB_COUNTS;closeUsageModal();renderList();}catch(e){alert(e.message);}finally{b.disabled=false;b.textContent='선택 완료';}};
+$('platformSearch').addEventListener('input',e=>{searchTerm=e.target.value.trim().toLowerCase();renderList();$('platformSearch').focus();});
+$('filterBtn').onclick=()=>{const modes=['all','popular','rating','reviews','latest'];sortMode=modes[(modes.indexOf(sortMode)+1)%modes.length];renderList();};
 function open(x){pid=x;$('list').hidden=true;$('detail').hidden=false;renderDetail();scrollTo(0,0);}
 $('back').onclick=()=>{pid='';$('detail').hidden=true;$('list').hidden=false;renderList();};
 function renderDetail(){const p=PLATFORMS.find(x=>x[0]===pid),rs=REVIEWS.filter(r=>r.pid===pid);$('dname').textContent=p[1];$('dcnt').textContent='리뷰 '+rs.length+'개';$('avg').textContent=rs.length?(rs.reduce((a,r)=>a+r.rating,0)/rs.length).toFixed(1):'–';
@@ -247,22 +462,22 @@ $('body').addEventListener('input',()=>$('len').textContent=$('body').value.leng
 const reviewBox=document.querySelector('#sheet .box');
 $('body').addEventListener('focus',()=>{
   $('body').style.height='76px';
-  if(reviewBox) reviewBox.style.maxHeight='';
+  if(reviewBox) reviewBox.style.maxHeight='55dvh';
   setTimeout(()=>{$('body').scrollIntoView({block:'center',behavior:'smooth'});},180);
 });
 $('body').addEventListener('blur',()=>{
   $('body').style.height='88px';
-  if(reviewBox) reviewBox.style.maxHeight='100dvh';
+  if(reviewBox) reviewBox.style.maxHeight='85dvh';
 });
 if(window.visualViewport){
   const fitReviewSheet=()=>{
     if(!$('sheet').classList.contains('on')||!reviewBox)return;
     const visibleHeight=window.visualViewport.height;
-    reviewBox.style.maxHeight=Math.max(180,visibleHeight-12)+'px';
+    reviewBox.style.maxHeight=Math.max(180,Math.min(visibleHeight-12,window.innerHeight*.85))+'px';
   };
   window.visualViewport.addEventListener('resize',fitReviewSheet);
   $('body').addEventListener('focus',()=>setTimeout(fitReviewSheet,220));
-  $('body').addEventListener('blur',()=>setTimeout(()=>{if(reviewBox)reviewBox.style.maxHeight='100dvh';},220));
+  $('body').addEventListener('blur',()=>setTimeout(()=>{if(reviewBox)reviewBox.style.maxHeight='85dvh';},220));
 }
 function getMine(){const id=localStorage.getItem('anonreview-id');return id?REVIEWS.find(r=>r.id===id&&r.pid===pid):null;}
 function openForm(){if(!pid)return;editId=null;rating=0;chosen=[];$('body').value='';$('len').textContent=0;$('stitle').textContent='리뷰 쓰기';$('save').textContent='등록하기';$('target').textContent=PLATFORMS.find(x=>x[0]===pid)[1]+'에 대한 익명 리뷰';renderStars();renderGroups();$('sheet').classList.add('on');}
@@ -341,8 +556,12 @@ async function likeReview(id){
   }
 }
 async function report(id){const reason=prompt('신고 사유를 입력해 주세요. (예: 욕설, 광고, 부적절한 내용)');if(reason===null)return;try{const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'report',id,reason})});const d=await res.json();if(!res.ok)throw Error(d.error||'신고 실패');alert('신고가 접수되었습니다.');}catch(e){alert(e.message);}}
-$('moreBtn').onclick=()=>{ $('adminModal').hidden=false; adminPw='';localStorage.removeItem('anonreview-admin-pw'); };
-$('adminClose').onclick=()=>{$('adminModal').hidden=true;};
+let adminSavedScrollY=0;
+function openAdminModal(){adminSavedScrollY=window.scrollY||0;document.body.style.top=`-${adminSavedScrollY}px`;document.body.classList.add('admin-modal-open');$('adminModal').hidden=false;adminPw='';localStorage.removeItem('anonreview-admin-pw');}
+function closeAdminModal(){ $('adminModal').hidden=true;document.body.classList.remove('admin-modal-open');document.body.style.top='';window.scrollTo(0,adminSavedScrollY); }
+$('moreBtn').onclick=openAdminModal;
+$('adminClose').onclick=closeAdminModal;
+$('adminModal').addEventListener('click',e=>{if(e.target===$('adminModal'))closeAdminModal();});
 $('adminLoginDo').onclick=async()=>{const pw=$('adminPwInput').value;if(!pw)return alert('비밀번호를 입력하세요.');const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'login',pw})});const d=await res.json();if(!d.ok)return alert('관리자 비밀번호가 올바르지 않아요.');adminPw=pw;localStorage.setItem('anonreview-admin-pw',pw);$('adminLoginBox').hidden=true;$('adminPanel').hidden=false;loadAdmin();};
 
 async function loadAdmin(){if(!adminPw)return;const res=await fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'adminList',pw:adminPw})});const d=await res.json();if(!res.ok)return alert(d.error||'관리자 정보를 불러오지 못했어요.');const reports=d.reviews.filter(r=>(r.rp||[]).length);$('adminReports').innerHTML=reports.length?reports.map(r=>`<div class="admin-item"><b>${esc(PLATFORMS.find(p=>p[0]===r.pid)?.[1]||r.pid)}</b><div>${esc(r.body)}</div><div class="muted">신고 ${r.rp.length}건 · 사유: ${esc(r.rp.map(x=>x.reason).join(', '))}</div><button class="btn danger" data-admin-delete="${r.id}">리뷰 삭제</button><button class="btn" data-clear-report="${r.id}">신고 초기화</button></div>`).join(''):'<div class="empty">신고된 리뷰가 없어요.</div>';
