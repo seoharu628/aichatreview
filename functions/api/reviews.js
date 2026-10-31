@@ -48,12 +48,12 @@ function json(x,s=200){
 }
 
 const strip=r=>{
-  const {sec,browserToken,rp,...p}=r;
-  return p;
+  const {sec,browserToken,rp,likes,...p}=r;
+  return {...p,likeCount:Array.isArray(likes)?likes.length:0};
 };
 
 const adminStrip=r=>{
-  const {sec,browserToken,...p}=r;
+  const {sec,browserToken,likes,...p}=r;
   return p;
 };
 
@@ -62,8 +62,8 @@ const allowed=new Set([
   'Ui 좋음','Ui 보통','Ui 나쁨',
   '홈페이지만 있음','어플 있음','홈페이지와 어플 둘 다 있음',
   '출력량 좋음','출력량 보통','출력량 나쁨',
-  '프롬포르 글자수 김','프롬포트 글자수 짧음','프롬포트 글자수 보통',
-  '단축어 있음','단축어 없음',
+  '프롬프트 글자수 긴','프롬프트 글자수 짧음','프롬프트 글자수 보통',
+  '명령어 있음','명령어 없음',
   '기억력 좋음','기억력 나쁨','기억력 보통',
   '모델 좋음','모델 보통','모델 나쁨'
 ]);
@@ -75,7 +75,7 @@ export async function onRequestGet({env,request}){
     const usage=await loadUsage(env);
     const mine=token&&usage[token]?normalizeUsageEntry(usage[token]):{main:[],sub:[]};
     return json({
-      reviews:(await load(env)).map(strip),
+      reviews:(await load(env)).map(r=>({...strip(r),likedByMe:!!(token&&Array.isArray(r.likes)&&r.likes.includes(token))})),
       usageMain:usageSummary(usage,'main'),
       usageSub:usageSummary(usage,'sub'),
       myUsage:mine
@@ -98,6 +98,23 @@ export async function onRequestPost({request,env}){
     list=await load(env);
   }catch(e){
     return json({error:'KV를 읽지 못했어요.'},500);
+  }
+
+  // 리뷰 좋아요: 브라우저별로 한 번만 반영하고 같은 브라우저에서 취소 가능
+  if(b.action==='setLike'){
+    const id=String(b.id||'');
+    const token=String(b.browserToken||'');
+    if(!/^[a-f0-9-]{20,80}$/i.test(token)) return json({error:'브라우저 확인 정보가 올바르지 않아요. 새로고침해 주세요.'},400);
+    const r=list.find(x=>x.id===id);
+    if(!r) return json({error:'리뷰를 찾을 수 없어요.'},404);
+    if(r.browserToken===token) return json({error:'내 리뷰에는 좋아요를 누를 수 없어요.'},403);
+    r.likes=Array.isArray(r.likes)?r.likes:[];
+    const want=!!b.liked;
+    const had=r.likes.includes(token);
+    if(want&&!had) r.likes.push(token);
+    if(!want&&had) r.likes=r.likes.filter(x=>x!==token);
+    await save(env,list);
+    return json({ok:true,liked:r.likes.includes(token),likeCount:r.likes.length});
   }
 
   if(b.action==='saveUsage'){
