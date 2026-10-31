@@ -317,6 +317,16 @@ html, body { max-width:100%; overflow-x:hidden; }
   .admin-window { width:calc(100vw - 20px) !important; max-width:calc(100vw - 20px) !important; padding:20px 16px !important; border-radius:20px !important; }
 }
 </style>
+
+<style id="full-platform-rank-styles">
+.all-ranks-open{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:14px;padding:12px 2px 0;border:0;border-top:1px solid #e3e3e3;background:transparent;color:#2457a6;font-size:15px;font-weight:750;text-align:left}
+.all-ranks-open span{font-size:26px;line-height:1}
+.rank-modal[hidden]{display:none!important}.rank-modal{position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding: max(14px,env(safe-area-inset-top)) 12px max(14px,env(safe-area-inset-bottom));background:rgba(15,23,42,.55);overscroll-behavior:contain}
+.rank-window{position:relative;width:min(560px,100%);max-height:calc(100dvh - 28px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;background:#fff;border:1px solid #e2e8f0;border-radius:26px;padding:26px 22px;color:#111;box-sizing:border-box}
+.rank-window h2{font-size:27px;margin:0 42px 8px 0}.rank-description{color:#777;margin:0 0 22px;font-size:14px}.rank-close{position:absolute;right:16px;top:12px;border:0;background:transparent;font-size:32px;line-height:1;color:#555;padding:4px 8px}
+.rank-section{margin-top:20px}.rank-section h3{font-size:18px;margin:0 0 8px}.full-rank-row{display:flex;align-items:center;gap:12px;padding:11px 2px;border-bottom:1px solid #eee;font-size:15px}.full-rank-number{flex:0 0 38px;color:#2563eb;font-weight:800}.full-rank-name{min-width:0;flex:1;overflow-wrap:anywhere}.full-rank-count{color:#64748b;font-size:13px;font-weight:700}.full-rank-empty{padding:12px 0;color:#777;font-size:14px}
+@media(max-width:600px){.rank-window{padding:24px 18px;border-radius:22px}.rank-window h2{font-size:23px}}
+</style>
 </head><body>
 <div id="adminModal" class="admin-modal" hidden>
   <div class="admin-window">
@@ -336,7 +346,7 @@ html, body { max-width:100%; overflow-x:hidden; }
   <h1>익명 평점</h1>
   <p class="hero-copy">캐릭터 챗 플랫폼, 익명으로 남기는 별점과 솔직한 후기</p>
   <div class="summary-grid"><div class="summary-card"><span>등록된 플랫폼</span><strong id="platformTotal">--</strong></div><div class="summary-card"><span>누적 리뷰</span><strong id="reviewTotal">--</strong></div></div>
-  <section class="popular-card" id="usageCard"><button type="button" class="usage-open" id="usageOpen"><span class="popular-title">어떤 플랫폼을 주로 사용하시나요?</span><span class="usage-chevron">›</span></button><p>사용 중인 플랫폼을 선택하면 이용자 선택 수에 따라 TOP 3 순위에 반영됩니다.</p><div id="popularList"><div class="popular-empty">아직 참여한 이용자가 없어요. 첫 번째로 선택해 주세요!</div></div></section>
+  <section class="popular-card" id="usageCard"><button type="button" class="usage-open" id="usageOpen"><span class="popular-title">어떤 플랫폼을 주로 사용하시나요?</span><span class="usage-chevron">›</span></button><p>사용 중인 플랫폼을 선택하면 이용자 선택 수에 따라 TOP 3 순위에 반영됩니다.</p><div id="popularList"><div class="popular-empty">아직 참여한 이용자가 없어요. 첫 번째로 선택해 주세요!</div></div><button type="button" class="all-ranks-open" id="allRanksOpen">전체 순위 보기 <span>›</span></button></section>
   <div class="browse-title">플랫폼 둘러보기</div>
   <div class="search-row"><label class="search-box"><span>⌕</span><input id="platformSearch" type="search" placeholder="플랫폼 검색" autocomplete="off"></label><button id="filterBtn" class="filter-button" type="button" aria-label="정렬 방식">☷</button></div>
   <div class="sort-tabs" role="group" aria-label="정렬"><button class="sort-chip active" data-sort="all">전체</button><button class="sort-chip" data-sort="popular">인기순</button><button class="sort-chip" data-sort="rating">평점순</button><button class="sort-chip" data-sort="reviews">리뷰순</button><button class="sort-chip" data-sort="latest">최신순</button></div>
@@ -359,6 +369,15 @@ html, body { max-width:100%; overflow-x:hidden; }
     <div id="usageSelected" class="usage-selected"></div>
     <div class="usage-actions"><button type="button" class="btn" id="usageCancel">취소</button><button type="button" class="btn solid" id="usageSave">선택 완료</button></div>
     <p class="usage-note">선택은 익명으로 집계되며, 다시 선택하면 이전 선택이 업데이트됩니다.</p>
+  </div>
+</div>
+<div class="rank-modal" id="rankModal" hidden>
+  <div class="rank-window" role="dialog" aria-modal="true" aria-labelledby="rankTitle">
+    <button type="button" class="rank-close" id="rankClose" aria-label="닫기">×</button>
+    <h2 id="rankTitle">플랫폼 전체 순위</h2>
+    <p class="rank-description">이용자들이 선택한 주 플랫폼과 서브 플랫폼의 전체 순위예요.</p>
+    <section class="rank-section"><h3>주 플랫폼 전체 순위</h3><div id="mainFullRanks"></div></section>
+    <section class="rank-section"><h3>서브 플랫폼 전체 순위</h3><div id="subFullRanks"></div></section>
   </div>
 </div>
 
@@ -457,6 +476,25 @@ function renderList(){
   document.querySelectorAll('[data-sort]').forEach(b=>{b.classList.toggle('active',b.dataset.sort===sortMode);b.onclick=()=>{sortMode=b.dataset.sort;renderList();};});
 }
 
+function renderFullRankRows(counts){
+ const byId=new Map((counts||[]).map(x=>[x.id,Number(x.count)||0]));
+ // 등록 플랫폼과 직접 추가된 플랫폼을 모두 포함해 전체 순위를 구성
+ const names=new Map(PLATFORMS.map(p=>[p[0],p[1]]));
+ (counts||[]).forEach(x=>{if(!names.has(x.id))names.set(x.id,String(x.name||x.id).replace(/^custom:/,''));});
+ const rows=[...names.entries()].map(([id,name])=>({id,name,count:byId.get(id)||0}));
+ rows.sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name,'ko'));
+ if(!rows.length||!rows.some(x=>x.count>0))return '<div class="full-rank-empty">아직 집계된 플랫폼이 없어요.</div>';
+ return rows.map((x,i)=>`<div class="full-rank-row"><span class="full-rank-number">${i+1}위</span><span class="full-rank-name">${esc(x.name)}</span><span class="full-rank-count">${x.count}명</span></div>`).join('');
+}
+function openFullRanks(){
+ $('mainFullRanks').innerHTML=renderFullRankRows(USAGE_MAIN_COUNTS);
+ $('subFullRanks').innerHTML=renderFullRankRows(USAGE_SUB_COUNTS);
+ $('rankModal').hidden=false;document.body.style.overflow='hidden';
+}
+function closeFullRanks(){ $('rankModal').hidden=true;document.body.style.overflow=''; }
+$('allRanksOpen').onclick=openFullRanks;
+$('rankClose').onclick=closeFullRanks;
+$('rankModal').addEventListener('click',e=>{if(e.target===$('rankModal'))closeFullRanks();});
 function openUsageModal(){usageDraft={main:[...(MY_USAGE.main||[])],sub:[...(MY_USAGE.sub||[])]};renderUsageChoices();$('usageModal').hidden=false;document.body.style.overflow='hidden';}
 function closeUsageModal(){ $('usageModal').hidden=true;document.body.style.overflow=''; }
 function renderUsageChoices(){
