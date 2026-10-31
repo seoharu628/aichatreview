@@ -1,9 +1,36 @@
 const KEY='reviews_v2';
+const USAGE_KEY='platform_usage_v1';
 
-// 중요: 기존 KV 데이터를 자동 초기화하거나 덮어쓰지 않습니다.
 async function load(env){
+  // 기존 리뷰 데이터는 초기화하지 않고 그대로 읽습니다.
   const x=await env.REVIEWS.get(KEY);
   return x?JSON.parse(x):[];
+}
+
+async function loadUsage(env){
+  const x=await env.REVIEWS.get(USAGE_KEY);
+  return x?JSON.parse(x):{};
+}
+async function saveUsage(env,x){
+  await env.REVIEWS.put(USAGE_KEY,JSON.stringify(x));
+}
+function normalizeUsageEntry(entry){
+  if(Array.isArray(entry?.items)){
+    // 이전 버전의 단일 선택 목록은 첫 항목을 주 플랫폼, 나머지를 서브로 이전
+    return {main:entry.items.slice(0,1),sub:entry.items.slice(1)};
+  }
+  return {main:Array.isArray(entry?.main)?entry.main:[],sub:Array.isArray(entry?.sub)?entry.sub:[]};
+}
+function usageSummary(data,key){
+  const counts=new Map();
+  for(const raw of Object.values(data||{})){
+    const voter=normalizeUsageEntry(raw);
+    for(const item of voter[key]||[]){
+      const id=String(item.id||'');
+      if(id) counts.set(id,(counts.get(id)||0)+1);
+    }
+  }
+  return [...counts.entries()].map(([id,count])=>({id,count})).sort((a,b)=>b.count-a.count);
 }
 
 async function save(env,x){
@@ -20,15 +47,14 @@ function json(x,s=200){
   });
 }
 
-const strip=(r,token='')=>{
-  const {sec,browserToken,rp,likeTokens,...p}=r;
-  const tokens=Array.isArray(likeTokens)?likeTokens:[];
-  return {...p,likeCount:tokens.length,likedByMe:!!token&&tokens.includes(token)};
+const strip=r=>{
+  const {sec,browserToken,rp,...p}=r;
+  return p;
 };
 
 const adminStrip=r=>{
-  const {sec,browserToken,likeTokens,...p}=r;
-  return {...p,likeCount:Array.isArray(likeTokens)?likeTokens.length:0};
+  const {sec,browserToken,...p}=r;
+  return p;
 };
 
 const allowed=new Set([
@@ -42,10 +68,18 @@ const allowed=new Set([
   '모델 좋음','모델 보통','모델 나쁨'
 ]);
 
-export async function onRequestGet({request,env}){
+export async function onRequestGet({env,request}){
   try{
-    const token=String(new URL(request.url).searchParams.get('token')||'');
-    return json({reviews:(await load(env)).map(r=>strip(r,token))});
+    const url=new URL(request.url);
+    const token=url.searchParams.get('token')||'';
+    const usage=await loadUsage(env);
+    const mine=token&&usage[token]?normalizeUsageEntry(usage[token]):{main:[],sub:[]};
+    return json({
+      reviews:(await load(env)).map(strip),
+      usageMain:usageSummary(usage,'main'),
+      usageSub:usageSummary(usage,'sub'),
+      myUsage:mine
+    });
   }catch(e){
     return json({error:'KV를 읽지 못했어요. REVIEWS 바인딩을 확인해 주세요.'},500);
   }
@@ -64,6 +98,20 @@ export async function onRequestPost({request,env}){
     list=await load(env);
   }catch(e){
     return json({error:'KV를 읽지 못했어요.'},500);
+  }
+
+  if(b.action==='saveUsage'){
+    const token=String(b.token||'');
+    if(!/^[a-f0-9-]{20,80}$/i.test(token)) return json({error:'사용자 확인 정보가 올바르지 않아요. 새로고침해 주세요.'},400);
+    if(!Array.isArray(b.main)||b.main.length>2||!Array.isArray(b.sub)||b.sub.length>80) return json({error:'주 플랫폼은 최대 2개, 서브 플랫폼은 여러 개 선택할 수 있어요.'},400);
+    const clean=(arr)=>{const out=[],seen=new Set();for(const raw of arr){const id=String(raw?.id||'').trim().slice(0,100);const name=String(raw?.name||'').trim().replace(/\s+/g,' ').slice(0,30);if(!id||!name||seen.has(id))continue;seen.add(id);out.push({id,name});}return out;};
+    const main=clean(b.main),sub=clean(b.sub),mainIds=new Set(main.map(x=>x.id));
+    const filteredSub=sub.filter(x=>!mainIds.has(x.id));
+    if(!main.length&&!filteredSub.length)return json({error:'주 플랫폼 또는 서브 플랫폼을 하나 이상 선택해 주세요.'},400);
+    const usage=await loadUsage(env);
+    usage[token]={main,sub:filteredSub,updatedAt:Date.now()};
+    await saveUsage(env,usage);
+    return json({ok:true,myUsage:{main,sub:filteredSub},usageMain:usageSummary(usage,'main'),usageSub:usageSummary(usage,'sub')});
   }
 
   const tags=Array.isArray(b.tags)
@@ -166,33 +214,6 @@ export async function onRequestPost({request,env}){
     list=list.filter(x=>x.id!==b.id);
     await save(env,list);
     return json({ok:true});
-  }
-
-  // 좋아요 상태를 명시적으로 저장합니다. 재시도/연속 클릭에도 중복 토글되지 않으며,
-  // 각 브라우저 토큰은 자신이 남긴 좋아요만 추가/취소할 수 있습니다.
-  if(b.action==='setLike' || b.action==='toggleLike'){
-    const r=list.find(x=>x.id===String(b.id||''));
-    if(!r) return json({error:'리뷰가 없어요.'},404);
-    const token=String(b.browserToken||'');
-    if(!token) return json({error:'브라우저 확인 정보가 없어요.'},400);
-    if(r.browserToken && r.browserToken===token){
-      return json({error:'내 리뷰에는 좋아요를 누를 수 없어요.'},403);
-    }
-    r.likeTokens=Array.isArray(r.likeTokens)?r.likeTokens:[];
-    let liked;
-    if(b.action==='setLike'){
-      liked=!!b.liked;
-      const index=r.likeTokens.indexOf(token);
-      if(liked && index<0) r.likeTokens.push(token);
-      if(!liked && index>=0) r.likeTokens.splice(index,1);
-    }else{
-      // 구버전 프런트엔드 호환
-      const index=r.likeTokens.indexOf(token);
-      if(index>=0){r.likeTokens.splice(index,1);liked=false;}
-      else{r.likeTokens.push(token);liked=true;}
-    }
-    await save(env,list);
-    return json({ok:true,liked:r.likeTokens.includes(token),likeCount:r.likeTokens.length});
   }
 
   // 리뷰 신고
