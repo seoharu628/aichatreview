@@ -291,6 +291,32 @@ body{background:#fff;color:#111;font-family:Arial,"Noto Sans KR",system-ui,sans-
 #moreBtn:focus, #moreBtn:focus-visible{outline:2px solid #93c5fd;outline-offset:4px;}
 </style>
 
+
+<style id="admin-modal-responsive-fix">
+html, body { max-width:100%; overflow-x:hidden; }
+.admin-modal {
+  position:fixed !important; inset:0 !important;
+  width:100% !important; max-width:100vw !important;
+  padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)) !important;
+  overflow-y:auto !important; overflow-x:hidden !important;
+  align-items:center !important; justify-content:center !important;
+}
+.admin-window {
+  display:block !important; box-sizing:border-box !important;
+  width: min(560px, calc(100vw - 24px)) !important;
+  min-width:0 !important; max-width:calc(100vw - 24px) !important;
+  max-height:calc(100dvh - 24px) !important;
+  margin: auto !important; padding:24px !important;
+  overflow-x:hidden !important; overflow-y:auto !important;
+  overflow-wrap:anywhere !important;
+}
+.admin-window * { min-width:0; max-width:100%; box-sizing:border-box; }
+.admin-window input, .admin-window button { max-width:100%; }
+@media (max-width:600px) {
+  .admin-modal { padding: max(10px, env(safe-area-inset-top)) 10px max(10px, env(safe-area-inset-bottom)) !important; }
+  .admin-window { width:calc(100vw - 20px) !important; max-width:calc(100vw - 20px) !important; padding:20px 16px !important; border-radius:20px !important; }
+}
+</style>
 </head><body>
 <div id="adminModal" class="admin-modal" hidden>
   <div class="admin-window">
@@ -335,6 +361,19 @@ body{background:#fff;color:#111;font-family:Arial,"Noto Sans KR",system-ui,sans-
     <p class="usage-note">선택은 익명으로 집계되며, 다시 선택하면 이전 선택이 업데이트됩니다.</p>
   </div>
 </div>
+
+<style id="review-sheet-top-spacing-fix">
+/* 리뷰 작성 시트의 불필요한 상단 여백 제거 */
+#sheet { align-items: flex-end !important; }
+#sheet .box {
+  margin: auto 0 0 !important;
+  padding-top: 24px !important;
+}
+#sheet .box > h3 { margin-top: 0 !important; margin-bottom: 18px !important; }
+@media (max-width: 600px) {
+  #sheet .box { padding-top: 22px !important; }
+}
+</style>
 <div class="sheet" id="sheet"><div class="box"><h3 id="stitle">리뷰 쓰기</h3><p class="muted" id="target"></p>
 <label>별점</label><div class="starpick" id="stars"></div>
 <label>후기 (선택, 0~30자)</label><textarea id="body" maxlength="30"></textarea><div class="muted" style="text-align:right"><span id="len">0</span> / 30</div>
@@ -374,7 +413,7 @@ const TAGS=[
 ['UI',['Ui 좋음','Ui 보통','Ui 나쁨']],
 ['접속 방식',['홈페이지만 있음','어플 있음','홈페이지와 어플 둘 다 있음']],
 ['출력량',['출력량 좋음','출력량 보통','출력량 나쁨']],
-['프롬프트',['프롬포르 글자수 김','프롬포트 글자수 짧음','프롬포트 글자수 보통','단축어 있음','단축어 없음']],
+['프롬프트',['프롬프트 글자수 긴','프롬프트 글자수 짧음','프롬프트 글자수 보통','명령어 있음','명령어 없음']],
 ['기억력',['기억력 좋음','기억력 나쁨','기억력 보통']],
 ['모델',['모델 좋음','모델 보통','모델 나쁨']]
 ];
